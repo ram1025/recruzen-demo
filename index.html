@@ -18,7 +18,8 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
 .tag {background: #e0e7ff; color: #4338ca; padding: 5px 10px; border-radius: 20px; font-size: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;}
 .download-btn {background: #22c55e; color: white; padding: 10px 15px; border: none; border-radius: 8px; float: right; cursor: pointer; font-weight:700;}
 .download-btn:hover {background: #16a34a;}
-.download-btn:disabled {background: #9ca3af; cursor: not-allowed;}
+.empty-state {text-align:center; color:#94a3b8; padding:60px 20px;}
+.empty-state h3 {color: #64748b;}
 </style>
 </head>
 <body>
@@ -41,12 +42,17 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
     <button class="btn" onclick="searchCandidates()">Search</button>
 </div>
 
-<div id="candidateList"></div>
+<div id="candidateList">
+    <div class="empty-state">
+        <h3>🔍 Start Searching for Candidates</h3>
+        <p>Enter Job Title, Skills or Notice Period and click Search</p>
+    </div>
+</div>
 
 <script>
 let credits = 50;
 
-// DUMMY DATA - NEE PERU PETTANU
+// DUMMY DATA
 const dummyData = [
     {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
     {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false},
@@ -57,16 +63,14 @@ const dummyData = [
 
 let candidates = [];
 
-// PAGE LOAD AYINAPPUDE FORCE SYNC
 window.onload = function() {
     loadCandidates();
-    displayCandidates(candidates);
+    // START LO EM CHUPINCHAKU
 }
 
 function loadCandidates() {
     let savedProfile = localStorage.getItem("talentiqProfile");
     
-    // FORCE ADD: TALENTIQ nunchi vachina profile ni top lo petadam
     if(savedProfile) {
         let p = JSON.parse(savedProfile);
         let forceCandidate = {
@@ -77,8 +81,8 @@ function loadCandidates() {
             location: p.location,
             exp: p.exp,
             isNew: true,
-            resumeData: p.resumeData, // PDF base64 data
-            resumeFile: p.resumeFile  // PDF file name
+            resumeData: p.resumeData,
+            resumeFile: p.resumeFile
         };
         candidates = [forceCandidate, ...dummyData]; 
     } else {
@@ -118,7 +122,7 @@ function searchCandidates() {
     displayCandidates(filtered);
 }
 
-// REAL PDF DOWNLOAD LOGIC
+// REAL PDF DOWNLOAD
 function downloadResume(index) {
     if(credits <= 0) {
         alert("No credits left! Please buy credits.");
@@ -129,17 +133,13 @@ function downloadResume(index) {
     credits--;
     document.getElementById('credits').innerText = credits;
     
-    // Nee profile aithe real PDF download
     if(c.resumeData) { 
         let link = document.createElement('a');
         link.href = c.resumeData; 
         link.download = c.resumeFile;
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
         alert(`✅ Downloading ${c.resumeFile}. Credits left: ${credits}`);
     } else {
-        // Dummy profile aithe fake alert
         alert(`📄 Downloading ${c.name}'s Dummy Resume. Credits left: ${credits}`);
     }
 }
