@@ -7,12 +7,14 @@
 <style>
 * {margin: 0; padding: 0; box-sizing: border-box;}
 body {font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa;}
-.header {background: #1e293b; color: white; padding: 20px 40px; display: flex; justify-content: space-between;}
+.header {background: #1e293b; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items:center;}
 .logo {font-size: 28px; font-weight: 800; color: #22c55e;}
+.credits {background: #22c55e; padding: 8px 15px; border-radius: 20px; font-weight:700;}
 .container {max-width: 1100px; margin: 30px auto; padding: 0 20px;}
 .search-box {background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;}
 input[type="text"] {width: 80%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px;}
 .btn {padding: 14px 25px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;}
+.btn:disabled {background: #9ca3af; cursor: not-allowed;}
 .candidate-card {background: white; padding: 25px; margin-bottom: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
 .new-tag {background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px;}
 </style>
@@ -21,7 +23,7 @@ input[type="text"] {width: 80%; padding: 14px; border: 2px solid #e5e7eb; border
 
 <div class="header">
     <div class="logo">RECRUZEN</div>
-    <div>Company Dashboard | Credits: 100</div>
+    <div>Company Dashboard | Credits: <span class="credits" id="creditCount">100</span></div>
 </div>
 
 <div class="container">
@@ -34,32 +36,63 @@ input[type="text"] {width: 80%; padding: 14px; border: 2px solid #e5e7eb; border
     <div id="candidateList">
         <h3>Top Candidates</h3>
 
-        <!-- IKKADA TALENTIQ NUNDI VACHINA CANDIDATE KANIPISTHUNDI -->
         <div class="candidate-card" id="newCandidate" style="border: 2px solid #22c55e; display:none;">
             <h4>GANESH RAM MAKINA <span class="new-tag">NEW FROM TALENTIQ</span></h4>
             <p><b>Role:</b> IT Support Specialist & Senior Talent Acquisition</p>
             <p><b>Experience:</b> 9+ Years | <b>Location:</b> Visakhapatnam</p>
             <p><b>Skills:</b> Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS</p>
             <p><b>Match Score:</b> 97%</p>
-            <button class="btn" onclick="alert('Resume Downloaded! 1 Credit Used')">Download Resume</button>
-        </div>
-
-        <div class="candidate-card">
-            <h4>Priya Sharma</h4>
-            <p><b>Role:</b> Frontend Developer</p>
-            <p><b>Skills:</b> React, JavaScript, CSS</p>
-            <button class="btn">Download Resume</button>
+            <button class="btn" id="downloadBtn" onclick="downloadResume()">Download Resume</button>
         </div>
 
     </div>
 </div>
 
 <script>
-// Page load ayyagane TALENTIQ nundi data thechadam
+let credits = 100;
+
+// Page load ayyagane credits + candidate load cheyadam
 window.onload = function() {
+    credits = localStorage.getItem("recruzenCredits")? parseInt(localStorage.getItem("recruzenCredits")) : 100;
+    document.getElementById('creditCount').innerText = credits;
+    
     let candidate = localStorage.getItem("talentiqCandidate");
     if(candidate) {
         document.getElementById('newCandidate').style.display = "block";
+    }
+}
+
+// Download + Credit cut logic
+function downloadResume() {
+    if(credits <= 0) {
+        alert("Insufficient Credits! Please buy more credits.");
+        return;
+    }
+
+    // 1. Credit tagginchadam
+    credits = credits - 1;
+    localStorage.setItem("recruzenCredits", credits);
+    document.getElementById('creditCount').innerText = credits;
+
+    // 2. Nijamga resume download cheyadam
+    const resumeContent = `GANESH RAM MAKINA
+IT Support Specialist & Senior Talent Acquisition
+Experience: 9+ Years
+Location: Visakhapatnam
+Skills: Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS`;
+    
+    const blob = new Blob([resumeContent], {type: 'text/plain'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = "GANESH_RAM_MAKINA_Resume.txt";
+    link.click();
+
+    alert("Resume Downloaded! 1 Credit Used. Remaining Credits: " + credits);
+    
+    // Credits 0 ayithe button disable
+    if(credits <= 0) {
+        document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('downloadBtn').innerText = "No Credits Left";
     }
 }
 
