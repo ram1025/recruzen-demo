@@ -1,88 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RecruZen Suite - Demo</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RECRUZEN - Find Top Talent</title>
+<style>
+* {margin: 0; padding: 0; box-sizing: border-box;}
+body {font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa;}
+.header {background: #1e293b; color: white; padding: 20px 40px; display: flex; justify-content: space-between;}
+.logo {font-size: 28px; font-weight: 800; color: #22c55e;}
+.container {max-width: 1100px; margin: 30px auto; padding: 0 20px;}
+.search-box {background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;}
+input[type="text"] {width: 80%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px;}
+.btn {padding: 14px 25px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;}
+.candidate-card {background: white; padding: 25px; margin-bottom: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+.new-tag {background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px;}
+</style>
 </head>
-<body class="bg-gray-50 font-['Inter']">
-  
-  <div class="max-w-7xl mx-auto p-6">
-    <!-- HEADER -->
-    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow">
-      <h1 class="text-2xl font-bold text-[#1E3A8A]">RecruZen Suite</h1>
-      <input id="companyName" value="Your Company" class="border p-2 rounded font-semibold" />
+<body>
+
+<div class="header">
+    <div class="logo">RECRUZEN</div>
+    <div>Company Dashboard | Credits: 100</div>
+</div>
+
+<div class="container">
+    <div class="search-box">
+        <h2>Search Candidates</h2>
+        <input type="text" id="candidateSearch" placeholder="Search by Skill: Java, Recruiter, Kibana">
+        <button class="btn" onclick="searchCandidates()">Search</button>
     </div>
 
-    <!-- KPI BAR -->
-    <div class="grid grid-cols-3 gap-4 mt-4">
-      <div class="bg-white p-4 rounded-xl shadow">
-        <p class="text-gray-500 text-sm">Remaining Credits</p>
-        <h2 id="credits" class="text-3xl font-bold text-[#F59E0B]">1500 / 1500</h2>
-      </div>
-      <div class="bg-white p-4 rounded-xl shadow">
-        <p class="text-gray-500 text-sm">Plan Expiry</p>
-        <h2 class="text-xl font-bold">24 Dec 2026</h2>
-      </div>
-      <div class="bg-white p-4 rounded-xl shadow">
-        <p class="text-gray-500 text-sm">New Matches Today</p>
-        <h2 class="text-3xl font-bold text-green-600">28</h2>
-      </div>
+    <div id="candidateList">
+        <h3>Top Candidates</h3>
+
+        <!-- IKKADA TALENTIQ NUNDI VACHINA CANDIDATE KANIPISTHUNDI -->
+        <div class="candidate-card" id="newCandidate" style="border: 2px solid #22c55e; display:none;">
+            <h4>GANESH RAM MAKINA <span class="new-tag">NEW FROM TALENTIQ</span></h4>
+            <p><b>Role:</b> IT Support Specialist & Senior Talent Acquisition</p>
+            <p><b>Experience:</b> 9+ Years | <b>Location:</b> Visakhapatnam</p>
+            <p><b>Skills:</b> Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS</p>
+            <p><b>Match Score:</b> 97%</p>
+            <button class="btn" onclick="alert('Resume Downloaded! 1 Credit Used')">Download Resume</button>
+        </div>
+
+        <div class="candidate-card">
+            <h4>Priya Sharma</h4>
+            <p><b>Role:</b> Frontend Developer</p>
+            <p><b>Skills:</b> React, JavaScript, CSS</p>
+            <button class="btn">Download Resume</button>
+        </div>
+
     </div>
+</div>
 
-    <!-- SEARCH -->
-    <input id="search" placeholder="Search by Job Title, Skills e.g. React Developer" 
-      class="w-full p-3 mt-6 border rounded-xl shadow-sm focus:ring-2 focus:ring-[#1E3A8A]"/>
-
-    <!-- CANDIDATE CARDS -->
-    <div id="candidates" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-    </div>
-  </div>
-
-  <script>
-    let credits = 1500;
-    const candidatesData = [
-      {name: "Emily Chen", match: 94, skills: "React, Node, AWS", exp: "4.5 Yrs", notice: "30 Days"},
-      {name: "Rahul Verma", match: 92, skills: "React, TS, NextJS", exp: "5 Yrs", notice: "Immediate"},
-      {name: "Priya Singh", match: 90, skills: "React, Redux", exp: "3 Yrs", notice: "15 Days"},
-      {name: "Amit Patel", match: 88, skills: "React, GraphQL", exp: "6 Yrs", notice: "60 Days"},
-      {name: "Sneha Reddy", match: 95, skills: "Vue, Node, MongoDB", exp: "4 Yrs", notice: "30 Days"},
-      {name: "Karthik Nair", match: 89, skills: "Angular, Java, Spring", exp: "7 Yrs", notice: "Immediate"},
-    ]
-
-    function renderCandidates() {
-      const container = document.getElementById('candidates');
-      container.innerHTML = '';
-      candidatesData.forEach(c => {
-        container.innerHTML += `
-          <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
-            <div class="flex justify-between items-start">
-              <h3 class="font-bold text-lg">${c.name}</h3>
-              <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-bold">${c.match}% Match</span>
-            </div>
-            <p class="text-sm text-gray-600 mt-2">${c.skills}</p>
-            <p class="text-sm text-gray-600">Exp: ${c.exp} | Notice: ${c.notice}</p>
-            <button onclick="downloadResume()" class="bg-[#1E3A8A] text-white w-full p-2 rounded mt-3 hover:bg-[#162d6b]">
-              Download Resume - 1 Credit
-            </button>
-          </div>
-        `
-      })
+<script>
+// Page load ayyagane TALENTIQ nundi data thechadam
+window.onload = function() {
+    let candidate = localStorage.getItem("talentiqCandidate");
+    if(candidate) {
+        document.getElementById('newCandidate').style.display = "block";
     }
+}
 
-    function downloadResume() {
-      if(credits > 0){
-        credits = credits - 1;
-        document.getElementById('credits').innerText = credits + " / 1500";
-        alert("✅ Resume Downloaded! 1 Credit Deducted. Remaining: " + credits);
-      } else {
-        alert("⚠️ Credits Finished! Please Upgrade Plan");
-      }
-    }
+function searchCandidates() {
+    let query = document.getElementById('candidateSearch').value.toLowerCase();
+    let cards = document.querySelectorAll('.candidate-card');
+    cards.forEach(card => {
+        if(card.innerText.toLowerCase().includes(query) || query === "") {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+</script>
 
-    renderCandidates();
-  </script>
 </body>
 </html>
-
