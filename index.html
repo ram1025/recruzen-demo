@@ -1,113 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RECRUZEN - Find Top Talent</title>
+<title>RECRUZEN - Company Dashboard</title>
 <style>
-* {margin: 0; padding: 0; box-sizing: border-box;}
-body {font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa;}
-.header {background: #1e293b; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items:center;}
-.logo {font-size: 28px; font-weight: 800; color: #22c55e;}
-.credits {background: #22c55e; padding: 8px 15px; border-radius: 20px; font-weight:700;}
-.container {max-width: 1100px; margin: 30px auto; padding: 0 20px;}
-.search-box {background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px;}
-input[type="text"] {width: 80%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px;}
-.btn {padding: 14px 25px; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;}
-.btn:disabled {background: #9ca3af; cursor: not-allowed;}
-.candidate-card {background: white; padding: 25px; margin-bottom: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+body {font-family: Arial; background: #f5f7fa;}
+.header {background: #1e293b; color: white; padding: 20px; display: flex; justify-content: space-between;}
+.credits {background: #22c55e; padding: 8px 15px; border-radius: 20px;}
+.container {max-width: 1100px; margin: 20px auto; padding: 20px;}
+.filters {background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;}
+.filters select,.filters input {padding: 10px; margin: 5px; border-radius: 8px; border: 1px solid #ddd;}
+.card {background: white; padding: 20px; margin-bottom: 15px; border-radius: 15px;}
 .new-tag {background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px;}
+.btn {background: #22c55e; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;}
 </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo">RECRUZEN</div>
-    <div>Company Dashboard | Credits: <span class="credits" id="creditCount">100</span></div>
+    <div><b>RECRUZEN</b></div>
+    <div>Credits: <span class="credits" id="creditCount">10</span></div>
 </div>
 
 <div class="container">
-    <div class="search-box">
-        <h2>Search Candidates</h2>
-        <input type="text" id="candidateSearch" placeholder="Search by Skill: Java, Recruiter, Kibana">
+    <div class="filters">
+        <h3>Search Candidates</h3>
+        <input type="text" id="jobTitle" placeholder="Job Title: Recruiter, Developer">
+        <input type="text" id="skillSearch" placeholder="Skills: Java, ATS">
+        <select id="noticePeriod">
+            <option value="">Any Notice Period</option>
+            <option value="Immediately">Immediately</option>
+            <option value="15 Days">15 Days</option>
+            <option value="30 Days">30 Days</option>
+        </select>
         <button class="btn" onclick="searchCandidates()">Search</button>
     </div>
 
-    <div id="candidateList">
-        <h3>Top Candidates</h3>
-
-        <div class="candidate-card" id="newCandidate" style="border: 2px solid #22c55e; display:none;">
-            <h4>GANESH RAM MAKINA <span class="new-tag">NEW FROM TALENTIQ</span></h4>
-            <p><b>Role:</b> IT Support Specialist & Senior Talent Acquisition</p>
-            <p><b>Experience:</b> 9+ Years | <b>Location:</b> Visakhapatnam</p>
-            <p><b>Skills:</b> Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS</p>
-            <p><b>Match Score:</b> 97%</p>
-            <button class="btn" id="downloadBtn" onclick="downloadResume()">Download Resume</button>
-        </div>
-
-    </div>
+    <div id="candidateList"></div>
 </div>
 
 <script>
-let credits = 100;
+let credits = parseInt(localStorage.getItem("recruzenCredits")) || 10;
+let allCandidates = [];
 
-// Page load ayyagane credits + candidate load cheyadam
+// 5 Dummy + 1 Real candidate data
+const dummyData = [
+    {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
+    {name: "Rahul Verma", designation: "Java Developer", jobType: "Immediately", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false},
+    {name: "Anjali Mehta", designation: "HR Manager", jobType: "15 Days", skills: "HRBP, Talent Acquisition, Payroll", location: "Mumbai", exp: 7, isNew: false},
+    {name: "Suresh Kumar", designation: "DevOps Engineer", jobType: "30 Days", skills: "AWS, Docker, Kibana, Grafana", location: "Chennai", exp: 6, isNew: false},
+    {name: "Kavya Reddy", designation: "IT Support Specialist", jobType: "Immediately", skills: "WebSphere, J2EE, Support", location: "Visakhapatnam", exp: 3, isNew: false},
+];
+
 window.onload = function() {
-    credits = localStorage.getItem("recruzenCredits")? parseInt(localStorage.getItem("recruzenCredits")) : 100;
     document.getElementById('creditCount').innerText = credits;
-    
-    let candidate = localStorage.getItem("talentiqCandidate");
-    if(candidate) {
-        document.getElementById('newCandidate').style.display = "block";
-    }
+    loadCandidates();
 }
 
-// Download + Credit cut logic
-function downloadResume() {
-    if(credits <= 0) {
-        alert("Insufficient Credits! Please buy more credits.");
-        return;
+function loadCandidates() {
+    allCandidates = [...dummyData];
+    let realProfile = localStorage.getItem("talentiqProfile");
+    if(realProfile) {
+        let p = JSON.parse(realProfile);
+        allCandidates.unshift({...p, isNew: true}); // Real profile ni top lo pettu
+        // Recruiter view chesadu ani mark chey
+        let views = parseInt(localStorage.getItem("profileViews")) || 0;
+        localStorage.setItem("profileViews", views + 1);
     }
+    displayCandidates(allCandidates);
+}
 
-    // 1. Credit tagginchadam
-    credits = credits - 1;
-    localStorage.setItem("recruzenCredits", credits);
-    document.getElementById('creditCount').innerText = credits;
-
-    // 2. Nijamga resume download cheyadam
-    const resumeContent = `GANESH RAM MAKINA
-IT Support Specialist & Senior Talent Acquisition
-Experience: 9+ Years
-Location: Visakhapatnam
-Skills: Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS`;
-    
-    const blob = new Blob([resumeContent], {type: 'text/plain'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = "GANESH_RAM_MAKINA_Resume.txt";
-    link.click();
-
-    alert("Resume Downloaded! 1 Credit Used. Remaining Credits: " + credits);
-    
-    // Credits 0 ayithe button disable
-    if(credits <= 0) {
-        document.getElementById('downloadBtn').disabled = true;
-        document.getElementById('downloadBtn').innerText = "No Credits Left";
-    }
+function displayCandidates(candidates) {
+    let html = `<h3>Found ${candidates.length} Candidates</h3>`;
+    candidates.forEach((c, i) => {
+        html += `<div class="card">
+            <h4>${c.name} ${c.isNew? '<span class="new-tag">NEW FROM TALENTIQ</span>' : ''}</h4>
+            <p><b>Role:</b> ${c.designation}</p>
+            <p><b>Experience:</b> ${c.exp} Years | <b>Notice:</b> ${c.jobType} | <b>Location:</b> ${c.location}</p>
+            <p><b>Skills:</b> ${c.skills}</p>
+            <button class="btn" onclick="downloadResume(${i})">Download Resume</button>
+        </div>`;
+    });
+    document.getElementById('candidateList').innerHTML = html;
 }
 
 function searchCandidates() {
-    let query = document.getElementById('candidateSearch').value.toLowerCase();
-    let cards = document.querySelectorAll('.candidate-card');
-    cards.forEach(card => {
-        if(card.innerText.toLowerCase().includes(query) || query === "") {
-            card.style.display = "block";
-        } else {
-            card.style.display = "none";
-        }
+    let job = document.getElementById('jobTitle').value.toLowerCase();
+    let skill = document.getElementById('skillSearch').value.toLowerCase();
+    let notice = document.getElementById('noticePeriod').value;
+    
+    let filtered = allCandidates.filter(c => {
+        return (c.designation.toLowerCase().includes(job) || job === "") &&
+               (c.skills.toLowerCase().includes(skill) || skill === "") &&
+               (c.jobType.includes(notice) || notice === "")
     });
+    displayCandidates(filtered);
+}
+
+function downloadResume(index) {
+    if(credits <= 0) {alert("No Credits Left!"); return;}
+    credits--;
+    localStorage.setItem("recruzenCredits", credits);
+    document.getElementById('creditCount').innerText = credits;
+    
+    let c = allCandidates[index];
+    const content = `${c.name}\nRole: ${c.designation}\nExp: ${c.exp} Years\nSkills: ${c.skills}`;
+    const blob = new Blob([content], {type: 'text/plain'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${c.name}_Resume.txt`;
+    link.click();
+    
+    alert(`Resume Downloaded! 1 Credit Used. Remaining: ${credits}`);
 }
 </script>
-
 </body>
 </html>
