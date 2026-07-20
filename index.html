@@ -1,83 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>RECRUZEN - Company Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RECRUZEN - AI Powered ATS</title>
 <style>
-body {font-family: Arial; background: #f5f7fa;}
-.header {background: #1e293b; color: white; padding: 20px; display: flex; justify-content: space-between;}
-.credits {background: #22c55e; padding: 8px 15px; border-radius: 20px;}
-.container {max-width: 1100px; margin: 20px auto; padding: 20px;}
-.filters {background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px;}
-.filters select,.filters input {padding: 10px; margin: 5px; border-radius: 8px; border: 1px solid #ddd;}
-.card {background: white; padding: 20px; margin-bottom: 15px; border-radius: 15px;}
-.new-tag {background: #10b981; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px;}
-.btn {background: #22c55e; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;}
+body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
+.header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;}
+.header h1 {color: #1e293b;}
+.credit-box {background: #fff; padding: 10px 20px; border-radius: 8px; border: 2px solid #4f46e5; font-weight:700;}
+.search-bar {background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;}
+.search-bar input, .search-bar select {padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; flex: 1; min-width: 200px;}
+.btn {background: #4f46e5; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s;}
+.btn:hover {background: #4338ca;}
+.candidate-card {background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative;}
+.new-badge {position: absolute; top: 15px; right: 15px; background: #22c55e; color: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight:700;}
+.tag {background: #e0e7ff; color: #4338ca; padding: 5px 10px; border-radius: 20px; font-size: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;}
+.download-btn {background: #22c55e; color: white; padding: 10px 15px; border: none; border-radius: 8px; float: right; cursor: pointer; font-weight:700;}
+.download-btn:hover {background: #16a34a;}
 </style>
 </head>
 <body>
 
 <div class="header">
-    <div><b>RECRUZEN</b></div>
-    <div>Credits: <span class="credits" id="creditCount">10</span></div>
+    <h1>RECRUZEN <span style="font-size:14px; color:gray;">AI Powered ATS</span></h1>
+    <div class="credit-box">Credits: <span id="credits">50</span></div>
 </div>
 
-<div class="container">
-    <div class="filters">
-        <h3>Search Candidates</h3>
-        <input type="text" id="jobTitle" placeholder="Job Title: Recruiter, Developer">
-        <input type="text" id="skillSearch" placeholder="Skills: Java, ATS">
-        <select id="noticePeriod">
-            <option value="">Any Notice Period</option>
-            <option value="Immediately">Immediately</option>
-            <option value="15 Days">15 Days</option>
-            <option value="30 Days">30 Days</option>
-        </select>
-        <button class="btn" onclick="searchCandidates()">Search</button>
-    </div>
-
-    <div id="candidateList"></div>
+<div class="search-bar">
+    <input type="text" id="jobTitle" placeholder="Job Title: Java Developer">
+    <input type="text" id="skills" placeholder="Skills: Java, Spring">
+    <select id="notice">
+        <option value="">Any Notice Period</option>
+        <option value="Immediately">Immediately</option>
+        <option value="15 Days">15 Days</option>
+        <option value="30 Days">30 Days</option>
+        <option value="60 Days">60 Days</option>
+    </select>
+    <button class="btn" onclick="searchCandidates()">Search</button>
 </div>
+
+<div id="candidateList"></div>
 
 <script>
-let credits = parseInt(localStorage.getItem("recruzenCredits")) || 10;
-let allCandidates = [];
+let credits = 50;
 
-// 5 Dummy + 1 Real candidate data
+// DUMMY DATA - NEE PERU PETTANU
 const dummyData = [
     {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
-    {name: "Rahul Verma", designation: "Java Developer", jobType: "Immediately", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false},
-    {name: "Anjali Mehta", designation: "HR Manager", jobType: "15 Days", skills: "HRBP, Talent Acquisition, Payroll", location: "Mumbai", exp: 7, isNew: false},
+    {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false},
+    {name: "Anjali Mehta", designation: "HR Manager", jobType: "30 Days", skills: "HRBP, Talent Acquisition, Payroll", location: "Mumbai", exp: 7, isNew: false},
     {name: "Suresh Kumar", designation: "DevOps Engineer", jobType: "30 Days", skills: "AWS, Docker, Kibana, Grafana", location: "Chennai", exp: 6, isNew: false},
-    {name: "Kavya Reddy", designation: "IT Support Specialist", jobType: "Immediately", skills: "WebSphere, J2EE, Support", location: "Visakhapatnam", exp: 3, isNew: false},
+    {name: "GANESH RAM MAKINA", designation: "IT Support Specialist", jobType: "30 Days", skills: "WebSphere, J2EE, Kibana, Support", location: "Visakhapatnam", exp: 9, isNew: false},
 ];
 
+let candidates = [];
+
+// PAGE LOAD AYINAPPUDE FORCE SYNC
 window.onload = function() {
-    document.getElementById('creditCount').innerText = credits;
     loadCandidates();
+    displayCandidates(candidates);
 }
 
 function loadCandidates() {
-    allCandidates = [...dummyData];
-    let realProfile = localStorage.getItem("talentiqProfile");
-    if(realProfile) {
-        let p = JSON.parse(realProfile);
-        allCandidates.unshift({...p, isNew: true}); // Real profile ni top lo pettu
-        // Recruiter view chesadu ani mark chey
-        let views = parseInt(localStorage.getItem("profileViews")) || 0;
-        localStorage.setItem("profileViews", views + 1);
+    let savedProfile = localStorage.getItem("talentiqProfile");
+    
+    // FORCE ADD: TALENTIQ nunchi vachina profile ni top lo petadam
+    if(savedProfile) {
+        let p = JSON.parse(savedProfile);
+        let forceCandidate = {
+            name: p.name + " NEW FROM TALENTIQ",
+            designation: p.designation,
+            jobType: p.jobType, 
+            skills: p.skills,
+            location: p.location,
+            exp: p.exp,
+            isNew: true
+        };
+        candidates = [forceCandidate, ...dummyData]; 
+    } else {
+        candidates = [...dummyData];
     }
-    displayCandidates(allCandidates);
 }
 
-function displayCandidates(candidates) {
-    let html = `<h3>Found ${candidates.length} Candidates</h3>`;
-    candidates.forEach((c, i) => {
-        html += `<div class="card">
-            <h4>${c.name} ${c.isNew? '<span class="new-tag">NEW FROM TALENTIQ</span>' : ''}</h4>
-            <p><b>Role:</b> ${c.designation}</p>
-            <p><b>Experience:</b> ${c.exp} Years | <b>Notice:</b> ${c.jobType} | <b>Location:</b> ${c.location}</p>
-            <p><b>Skills:</b> ${c.skills}</p>
-            <button class="btn" onclick="downloadResume(${i})">Download Resume</button>
+function displayCandidates(list) {
+    let html = "";
+    if(list.length === 0) {
+        html = "<h3 style='text-align:center; color:gray; padding:40px;'>Found 0 Candidates. Try 'Any Notice Period'</h3>";
+    }
+    
+    list.forEach(c => {
+        html += `<div class="candidate-card">
+            ${c.isNew ? '<span class="new-badge">NEW FROM TALENTIQ</span>' : ''}
+            <h3>${c.name}</h3>
+            <p><b>${c.designation}</b> | ${c.exp} Years | ${c.location}</p>
+            <p><b>Notice:</b> ${c.jobType}</p>
+            <p>${c.skills.split(',').map(s => `<span class="tag">${s.trim()}</span>`).join('')}</p>
+            <button class="download-btn" onclick="downloadResume('${c.name}')">Download Resume - 1 Credit</button>
         </div>`;
     });
     document.getElementById('candidateList').innerHTML = html;
@@ -85,32 +104,25 @@ function displayCandidates(candidates) {
 
 function searchCandidates() {
     let job = document.getElementById('jobTitle').value.toLowerCase();
-    let skill = document.getElementById('skillSearch').value.toLowerCase();
-    let notice = document.getElementById('noticePeriod').value;
-    
-    let filtered = allCandidates.filter(c => {
-        return (c.designation.toLowerCase().includes(job) || job === "") &&
-               (c.skills.toLowerCase().includes(skill) || skill === "") &&
-               (c.jobType.includes(notice) || notice === "")
+    let skill = document.getElementById('skills').value.toLowerCase();
+    let notice = document.getElementById('notice').value;
+
+    let filtered = candidates.filter(c => {
+        return (job === "" || c.designation.toLowerCase().includes(job)) &&
+               (skill === "" || c.skills.toLowerCase().includes(skill)) &&
+               (notice === "" || c.jobType === notice);
     });
     displayCandidates(filtered);
 }
 
-function downloadResume(index) {
-    if(credits <= 0) {alert("No Credits Left!"); return;}
-    credits--;
-    localStorage.setItem("recruzenCredits", credits);
-    document.getElementById('creditCount').innerText = credits;
-    
-    let c = allCandidates[index];
-    const content = `${c.name}\nRole: ${c.designation}\nExp: ${c.exp} Years\nSkills: ${c.skills}`;
-    const blob = new Blob([content], {type: 'text/plain'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${c.name}_Resume.txt`;
-    link.click();
-    
-    alert(`Resume Downloaded! 1 Credit Used. Remaining: ${credits}`);
+function downloadResume(name) {
+    if(credits > 0) {
+        credits--;
+        document.getElementById('credits').innerText = credits;
+        alert(`Downloading ${name}'s Resume. Credits left: ${credits}`);
+    } else {
+        alert("No credits left! Please buy credits.");
+    }
 }
 </script>
 </body>
