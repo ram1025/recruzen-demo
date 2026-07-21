@@ -7,7 +7,22 @@
 <style>
 body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
 
-/* KOTTHA BANNER CSS */
+/* NEW: 2 COLUMN LAYOUT */
+.main-container {display: grid; grid-template-columns: 1fr 320px; gap: 20px;}
+@media(max-width: 1024px){ .main-container {grid-template-columns: 1fr;} .sidebar {display:none;} }
+
+.sidebar {
+  background: white; 
+  padding: 20px; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  height: fit-content;
+}
+.sidebar h3 {margin-top: 0; color: #1e293b;}
+.download-item {display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; font-size:14px;}
+.download-item:last-child {border-bottom:none;}
+
+/* MEE MIGATHA CSS ANNI SAME */
 .banner {
   background: linear-gradient(90deg, #1E3A8A 0%, #F97316 100%);
   color: white;
@@ -24,7 +39,8 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
 }
 @media(max-width: 768px){ 
   .kpi-grid{ grid-template-columns: 1fr; }
-  .header-right {display:none !important;} /* Mobile lo profile hide */
+  .header-right {display:none !important;}
+  .btn {width: 100%; margin-top: 10px;} 
 }
 .kpi-card {
   background: rgba(255,255,255,0.15);
@@ -38,14 +54,19 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
 .progress-bar {background: rgba(255,255,255,0.3); height: 8px; border-radius: 10px; margin-top: 8px; overflow: hidden;}
 .progress-fill {background: #F97316; height: 100%; border-radius: 10px; transition: 0.3s;}
 
-/* UPDATED HEADER CSS */
+/* HEADER + DROPDOWN */
 .header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
 .header-left {display:flex; align-items:center; gap:12px;}
 .logo {background:linear-gradient(135deg, #F97316, #1E3A8A); color:white; padding:8px 12px; border-radius:10px; font-weight:800; font-size:18px;}
-.header-right {display:flex; align-items:center; gap:20px;}
+.header-right {display:flex; align-items:center; gap:20px; position:relative;}
 .bell {position:relative; cursor:pointer; font-size:22px;}
 .bell-badge {position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:10px; padding:2px 6px; border-radius:50%; font-weight:700;}
-.profile {display:flex; align-items:center; gap:8px; cursor:pointer;}
+.profile {display:flex; align-items:center; gap:8px; cursor:pointer; position:relative;}
+.dropdown {display:none; position:absolute; top:50px; right:0; background:white; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15); min-width:180px; z-index:100; border:1px solid #e5e7eb;}
+.dropdown.show {display:block;}
+.dropdown a {display:block; padding:12px 16px; color:#1e293b; text-decoration:none; font-weight:600; transition:0.2s;}
+.dropdown a:hover {background:#f1f5f9;}
+.dropdown hr {margin:5px 0; border:none; border-top:1px solid #e5e7eb;}
 .credit-box {background: #fff; padding: 10px 20px; border-radius: 8px; border: 2px solid #4f46e5; font-weight:700;}
 
 .search-bar {background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;}
@@ -66,7 +87,7 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
 </head>
 <body>
 
-<!-- PROFESSIONAL BANNER START -->
+<!-- BANNER -->
 <div class="banner">
   <h1 style="margin:0; font-size: 28px; font-weight: 700;">RecruZen Suite 🚀</h1>
   <p style="margin:5px 0 0 0; opacity: 0.9;">AI-Powered Recruitment Platform</p>
@@ -91,9 +112,8 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
     </div>
   </div>
 </div>
-<!-- PROFESSIONAL BANNER END -->
 
-<!-- UPDATED HEADER -->
+<!-- HEADER -->
 <div class="header">
     <div class="header-left">
         <div class="logo">RZ</div>
@@ -104,47 +124,63 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc; padding: 20px;}
     </div>
 
     <div class="header-right">
-        <!-- NOTIFICATION BELL -->
         <div class="bell">
             <span>🔔</span>
             <span class="bell-badge">3</span>
         </div>
-
-        <!-- PROFILE -->
-        <div class="profile">
+        <div class="profile" onclick="toggleDropdown()">
             <img src="https://i.pravatar.cc/40" style="border-radius:50%; width:40px; height:40px;">
             <div>
                 <p style="margin:0; font-weight:700; font-size:14px;">Recruiter Admin ▼</p>
             </div>
+            <div class="dropdown" id="profileDropdown">
+                <a href="#" onclick="alert('Profile Page')">👤 My Profile</a>
+                <a href="#" onclick="alert('Settings Page')">⚙️ Settings</a>
+                <a href="#" onclick="alert('Billing Page')">💳 Billing</a>
+                <hr>
+                <a href="#" style="color:#ef4444;" onclick="alert('Logged Out')">🚪 Logout</a>
+            </div>
         </div>
-
         <div class="credit-box">Credits: <span id="credits">50</span></div>
     </div>
 </div>
 
-<div class="search-bar">
-    <input type="text" id="jobTitle" placeholder="Job Title: Java Developer">
-    <input type="text" id="skills" placeholder="Skills: Java, Spring">
-    <select id="notice">
-        <option value="">Any Notice Period</option>
-        <option value="Immediately">Immediately</option>
-        <option value="15 Days">15 Days</option>
-        <option value="30 Days">30 Days</option>
-        <option value="60 Days">60 Days</option>
-    </select>
-    <button class="btn" onclick="searchCandidates()">Search</button>
-</div>
+<!-- NEW: 2 COLUMN WRAPPER -->
+<div class="main-container">
+    <div>
+        <div class="search-bar">
+            <input type="text" id="jobTitle" placeholder="Job Title: Java Developer">
+            <input type="text" id="skills" placeholder="Skills: Java, Spring">
+            <select id="notice">
+                <option value="">Any Notice Period</option>
+                <option value="Immediately">Immediately</option>
+                <option value="15 Days">15 Days</option>
+                <option value="30 Days">30 Days</option>
+                <option value="60 Days">60 Days</option>
+            </select>
+            <button class="btn" onclick="searchCandidates()">Search</button>
+        </div>
 
-<div id="candidateList">
-    <div class="start-msg">🔍 Search chesi candidates chudandi</div>
+        <div id="candidateList">
+            <div class="start-msg">🔍 Search chesi candidates chudandi</div>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="sidebar">
+        <h3>📥 Recent Downloads</h3>
+        <div id="recentDownloads">
+            <p style="color:gray; font-size:14px;">No downloads yet</p>
+        </div>
+    </div>
 </div>
 
 <script>
 let credits = 50;
 let maxCredits = 1500;
 let candidates = [];
+let downloads = []; // NEW
 
-// DUMMY DATA
 const dummyData = [
     {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
     {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false},
@@ -153,10 +189,18 @@ const dummyData = [
     {name: "GANESH RAM MAKINA", designation: "IT Support Specialist & Senior Talent Acquisition", jobType: "30 Days", skills: "Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS", location: "Visakhapatnam", exp: 9, isNew: false},
 ];
 
-// PAGE LOAD
+function toggleDropdown() {
+    document.getElementById("profileDropdown").classList.toggle("show");
+}
+window.onclick = function(event) {
+  if (!event.target.closest('.profile')) {
+    document.getElementById("profileDropdown").classList.remove('show');
+  }
+}
+
 window.onload = function() {
     loadCandidates();
-    displayCandidates(candidates); // AUTO LOAD
+    displayCandidates(candidates);
 }
 
 function loadCandidates() {
@@ -178,6 +222,21 @@ function updateUI() {
     document.getElementById('bannerCredits').innerText = credits;
     let percent = (credits / maxCredits) * 100;
     document.getElementById('progressFill').style.width = percent + '%';
+}
+
+function updateDownloads() {
+    let html = "";
+    if(downloads.length === 0) {
+        html = "<p style='color:gray; font-size:14px;'>No downloads yet</p>";
+    } else {
+        downloads.slice(0,5).forEach(d => {
+            html += `<div class="download-item">
+                <span>${d.name}</span>
+                <span style="color:gray; font-size:12px;">${d.time}</span>
+            </div>`;
+        });
+    }
+    document.getElementById('recentDownloads').innerHTML = html;
 }
 
 function displayCandidates(list) {
@@ -218,6 +277,9 @@ function searchCandidates() {
 function downloadResume(name) {
     if(credits > 0) {
         credits--;
+        // Add to recent downloads
+        downloads.unshift({name: name, time: "Just now"});
+        updateDownloads();
         updateUI();
         alert(`Downloading ${name}'s Resume. Credits left: ${credits}`);
     } else {
