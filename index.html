@@ -21,7 +21,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 .forgot-link{text-align:center; margin-top:15px; font-size:14px;}
 .forgot-link a{color:#4f46e5; text-decoration:none; font-weight:600;}
 .forgot-link a:hover{text-decoration:underline;}
-/* NEW: DEMO CREDENTIALS BOX */
 .demo-box{background:#f0f4ff; border:1px dashed #4f46e5; border-radius:8px; padding:12px; margin-top:20px; text-align:center; font-size:13px;}
 .demo-box p{margin:4px 0; color:#1e293b;}
 .demo-box b{color:#4f46e5;}
@@ -92,8 +91,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
         <p class="forgot-link">
             <a href="#" onclick="forgotPassword()">Forgot Password?</a>
         </p>
-
-        <!-- DEMO CREDENTIALS FOR RECRUITERS -->
         <div class="demo-box">
             <p><b>Demo Login for Recruiters</b></p>
             <p>Email: <b>admin@recruzen.com</b></p>
@@ -106,7 +103,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 <div id="dashboard" class="hidden">
     <div class="ptr-loader" id="ptrLoader">↓ Pull to Refresh</div>
 
-    <!-- BANNER -->
     <div class="banner">
         <h1 style="margin:0; font-size: 28px; font-weight: 700;">RecruZen Suite 🚀</h1>
         <p style="margin:5px 0 0 0; opacity: 0.9;">AI-Powered Recruitment Platform</p>
@@ -117,7 +113,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
         </div>
     </div>
 
-    <!-- HEADER -->
     <div class="header">
         <div class="header-left">
             <div class="logo">RZ</div>
@@ -148,7 +143,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="main-container">
         <div>
             <div class="search-bar">
@@ -170,11 +164,28 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 
 <script>
 let credits = 50; let maxCredits = 1500; let candidates = []; let downloads = [];
+let lastSearch = {job:'', skill:'', notice:''}; // to remember search
 const dummyData = [
 {name: "GANESH RAM MAKINA", designation: "IT Support Specialist & Senior Talent Acquisition", jobType: "30 Days", skills: "Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS", location: "Visakhapatnam", exp: 9, isNew: false},
 {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
 {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false}
 ];
+
+// PAGE LOAD CHECK - auto login if already logged in
+window.onload = function(){
+    if(localStorage.getItem('recruzen_loggedin') === 'true'){
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadCandidates();
+        updateUI();
+        // restore last search
+        let saved = JSON.parse(localStorage.getItem('recruzen_search') || '{}');
+        if(saved.job){ document.getElementById('jobTitle').value = saved.job; }
+        if(saved.skill){ document.getElementById('skills').value = saved.skill; }
+        if(saved.notice){ document.getElementById('notice').value = saved.notice; }
+        if(saved.job || saved.skill || saved.notice){ searchCandidates(); }
+    }
+}
 
 // LOGIN LOGIC
 function togglePass(){
@@ -183,16 +194,14 @@ function togglePass(){
 }
 function forgotPassword(){
     let email = document.getElementById('email').value;
-    if(email === ''){
-        alert('Please enter your Email ID first');
-    } else {
-        alert('Password reset link sent to ' + email);
-    }
+    if(email === ''){ alert('Please enter your Email ID first'); }
+    else { alert('Password reset link sent to ' + email); }
 }
 function login(){
     let email = document.getElementById('email').value;
     let pass = document.getElementById('password').value;
     if(email === 'admin@recruzen.com' && pass === 'admin123'){
+        localStorage.setItem('recruzen_loggedin', 'true'); // SAVE LOGIN
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
         loadCandidates();
@@ -200,6 +209,8 @@ function login(){
     } else { alert('Invalid Email or Password'); }
 }
 function logout(){
+    localStorage.removeItem('recruzen_loggedin'); // CLEAR LOGIN
+    localStorage.removeItem('recruzen_search');
     document.getElementById('dashboard').classList.add('hidden');
     document.getElementById('loginPage').classList.remove('hidden');
     document.getElementById('email').value = '';
@@ -284,6 +295,9 @@ function searchCandidates() {
     let job = document.getElementById('jobTitle').value.toLowerCase().trim();
     let skill = document.getElementById('skills').value.toLowerCase().trim();
     let notice = document.getElementById('notice').value;
+
+    // SAVE SEARCH SO IT STAYS AFTER REFRESH
+    localStorage.setItem('recruzen_search', JSON.stringify({job:job, skill:skill, notice:notice}));
 
     if(job === '' && skill === '' && notice === ''){
         alert('Please enter at least one field to search');
