@@ -232,18 +232,41 @@ function displayCandidates(list) {
     document.getElementById('candidateList').innerHTML = html;
 }
 function searchCandidates() {
-    let job = document.getElementById('jobTitle').value.toLowerCase();
-    let skill = document.getElementById('skills').value.toLowerCase();
+    let job = document.getElementById('jobTitle').value.toLowerCase().trim();
+    let skill = document.getElementById('skills').value.toLowerCase().trim();
     let notice = document.getElementById('notice').value;
+    
     if(job === '' && skill === '' && notice === ''){
         alert('Please enter at least one field to search');
         return;
     }
+
+    // skills ni , tho split chesi array cheddam
+    let skillArray = skill.split(',').map(s => s.trim()).filter(s => s !== "");
+
     let filtered = candidates.filter(c => {
-        return (job === "" || c.designation.toLowerCase().includes(job)) &&
-               (skill === "" || c.skills.toLowerCase().includes(skill)) &&
-               (notice === "" || c.jobType === notice);
+        // 1. Job Title check - partial match
+        let jobMatch = job === "" || c.designation.toLowerCase().includes(job);
+        
+        // 2. Skills check - any one skill match ayithe saripothundi
+        let skillMatch = skillArray.length === 0 || skillArray.some(s => c.skills.toLowerCase().includes(s));
+        
+        // 3. Notice period check
+        let noticeMatch = notice === "" || c.jobType === notice;
+        
+        return jobMatch && skillMatch && noticeMatch;
     });
+
+    // Nuvve aithe top lo pettu
+    filtered.sort((a,b) => {
+        if(a.name.toLowerCase().includes("ganesh")) return -1;
+        return 0;
+    });
+
+    if(filtered.length === 0){
+        document.getElementById('candidateList').innerHTML = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found. Try 'Support' or 'Java'</h3>";
+        return;
+    }
     displayCandidates(filtered);
 }
 function downloadResume(name) {
