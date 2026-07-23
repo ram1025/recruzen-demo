@@ -9,8 +9,13 @@
 body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 .hidden{display:none!important}
 
+/* IMPORTANT: Start with both hidden, JS decides what to show */
+#loginPage, #dashboard {display:none;}
+body.show-login #loginPage{display:flex;}
+body.show-dashboard #dashboard{display:block;}
+
 /* LOGIN PAGE */
-.login-container{display:flex; justify-content:center; align-items:center; min-height:100vh; background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);}
+.login-container{justify-content:center; align-items:center; min-height:100vh; background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);}
 .login-box{background:white; padding:40px 30px; border-radius:16px; width:90%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2);}
 .login-box h1{text-align:center; color:#1E3A8A; margin-bottom:20px; font-size:28px;}
 .input-group{margin-bottom:18px; position:relative;}
@@ -100,7 +105,7 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 </div>
 
 <!-- 2. DASHBOARD -->
-<div id="dashboard" class="hidden">
+<div id="dashboard">
     <div class="ptr-loader" id="ptrLoader">↓ Pull to Refresh</div>
 
     <div class="banner">
@@ -164,28 +169,27 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 
 <script>
 let credits = 50; let maxCredits = 1500; let candidates = []; let downloads = [];
-let lastSearch = {job:'', skill:'', notice:''}; // to remember search
 const dummyData = [
 {name: "GANESH RAM MAKINA", designation: "IT Support Specialist & Senior Talent Acquisition", jobType: "30 Days", skills: "Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS", location: "Visakhapatnam", exp: 9, isNew: false},
 {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
 {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false}
 ];
 
-// PAGE LOAD CHECK - auto login if already logged in
-window.onload = function(){
+// PAGE LOAD CHECK - runs immediately, no flicker
+(function(){
     if(localStorage.getItem('recruzen_loggedin') === 'true'){
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
+        document.body.classList.add('show-dashboard');
         loadCandidates();
         updateUI();
-        // restore last search
         let saved = JSON.parse(localStorage.getItem('recruzen_search') || '{}');
         if(saved.job){ document.getElementById('jobTitle').value = saved.job; }
         if(saved.skill){ document.getElementById('skills').value = saved.skill; }
         if(saved.notice){ document.getElementById('notice').value = saved.notice; }
         if(saved.job || saved.skill || saved.notice){ searchCandidates(); }
+    } else {
+        document.body.classList.add('show-login');
     }
-}
+})();
 
 // LOGIN LOGIC
 function togglePass(){
@@ -201,18 +205,18 @@ function login(){
     let email = document.getElementById('email').value;
     let pass = document.getElementById('password').value;
     if(email === 'admin@recruzen.com' && pass === 'admin123'){
-        localStorage.setItem('recruzen_loggedin', 'true'); // SAVE LOGIN
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
+        localStorage.setItem('recruzen_loggedin', 'true');
+        document.body.classList.remove('show-login');
+        document.body.classList.add('show-dashboard');
         loadCandidates();
         updateUI();
     } else { alert('Invalid Email or Password'); }
 }
 function logout(){
-    localStorage.removeItem('recruzen_loggedin'); // CLEAR LOGIN
+    localStorage.removeItem('recruzen_loggedin');
     localStorage.removeItem('recruzen_search');
-    document.getElementById('dashboard').classList.add('hidden');
-    document.getElementById('loginPage').classList.remove('hidden');
+    document.body.classList.remove('show-dashboard');
+    document.body.classList.add('show-login');
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
 }
@@ -295,8 +299,6 @@ function searchCandidates() {
     let job = document.getElementById('jobTitle').value.toLowerCase().trim();
     let skill = document.getElementById('skills').value.toLowerCase().trim();
     let notice = document.getElementById('notice').value;
-
-    // SAVE SEARCH SO IT STAYS AFTER REFRESH
     localStorage.setItem('recruzen_search', JSON.stringify({job:job, skill:skill, notice:notice}));
 
     if(job === '' && skill === '' && notice === ''){
