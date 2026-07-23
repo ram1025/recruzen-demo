@@ -18,6 +18,13 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 .input-group input{width:100%; padding:12px 40px 12px 12px; border:2px solid #e5e7eb; border-radius:8px; font-size:15px;}
 .eye-icon{position:absolute; right:12px; top:38px; cursor:pointer; font-size:18px; color:gray;}
 .login-btn{width:100%; background:linear-gradient(90deg, #4f46e5, #7c3aed); color:white; padding:14px; border:none; border-radius:8px; font-weight:700; font-size:16px; cursor:pointer;}
+.forgot-link{text-align:center; margin-top:15px; font-size:14px;}
+.forgot-link a{color:#4f46e5; text-decoration:none; font-weight:600;}
+.forgot-link a:hover{text-decoration:underline;}
+/* NEW: DEMO CREDENTIALS BOX */
+.demo-box{background:#f0f4ff; border:1px dashed #4f46e5; border-radius:8px; padding:12px; margin-top:20px; text-align:center; font-size:13px;}
+.demo-box p{margin:4px 0; color:#1e293b;}
+.demo-box b{color:#4f46e5;}
 
 /* DASHBOARD */
 #dashboard{padding:20px;}
@@ -63,7 +70,7 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 .start-msg {text-align:center; color:gray; padding:60px 20px; font-size:16px;}
 
 /* PULL TO REFRESH */
-.ptr-loader{text-align:center; padding:10px; color:#4f46e5; font-weight:700; display:none;}
+.ptr-loader{text-align:center; padding:10px; color:#4f46e5; font-weight:700; display:none; background:white; border-radius:8px; margin-bottom:15px;}
 </style>
 </head>
 <body>
@@ -72,17 +79,26 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 <div class="login-container" id="loginPage">
     <div class="login-box">
         <h1>RecruZen 🚀</h1>
-        <p style="text-align:center; color:gray; margin-bottom:20px;">Demo: admin@recruzen.com / admin123</p>
         <div class="input-group">
             <label>Email ID</label>
-            <input type="email" id="email" placeholder="admin@recruzen.com">
+            <input type="email" id="email" placeholder="Enter Email ID">
         </div>
         <div class="input-group">
             <label>Password</label>
-            <input type="password" id="password" placeholder="admin123">
+            <input type="password" id="password" placeholder="Enter Password">
             <span class="eye-icon" onclick="togglePass()">👁️</span>
         </div>
         <button class="login-btn" onclick="login()">Login</button>
+        <p class="forgot-link">
+            <a href="#" onclick="forgotPassword()">Forgot Password?</a>
+        </p>
+
+        <!-- DEMO CREDENTIALS FOR RECRUITERS -->
+        <div class="demo-box">
+            <p><b>Demo Login for Recruiters</b></p>
+            <p>Email: <b>admin@recruzen.com</b></p>
+            <p>Password: <b>admin123</b></p>
+        </div>
     </div>
 </div>
 
@@ -108,7 +124,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
             <div><h1 style="margin:0; color: #1e293b; font-size:20px;">RecruZen Suite</h1></div>
         </div>
         <div class="header-right">
-            <!-- NOTIFICATION BELL -->
             <div class="bell" onclick="toggleBell()">
                 <span style="font-size:22px;">🔔</span>
                 <span class="bell-badge">3</span>
@@ -118,7 +133,6 @@ body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
                     <a href="#">Plan upgrade available</a>
                 </div>
             </div>
-            <!-- PROFILE DROPDOWN -->
             <div class="profile" onclick="toggleDropdown()">
                 <img src="https://i.pravatar.cc/40" style="border-radius:50%; width:40px; height:40px;">
                 <p style="margin:0; font-weight:700; font-size:14px;">Recruiter Admin ▼</p>
@@ -167,6 +181,14 @@ function togglePass(){
     let p = document.getElementById('password');
     p.type = p.type === 'password'? 'text' : 'password';
 }
+function forgotPassword(){
+    let email = document.getElementById('email').value;
+    if(email === ''){
+        alert('Please enter your Email ID first');
+    } else {
+        alert('Password reset link sent to ' + email);
+    }
+}
 function login(){
     let email = document.getElementById('email').value;
     let pass = document.getElementById('password').value;
@@ -192,15 +214,42 @@ window.onclick = function(event) {
     if (!event.target.closest('.bell')) document.getElementById("bellDropdown").classList.remove('show');
 }
 
-// PULL TO REFRESH
+// PULL TO REFRESH - WITHOUT LOGOUT
 let startY = 0;
-document.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+let isRefreshing = false;
+document.addEventListener('touchstart', e => {
+    if(window.scrollY === 0) startY = e.touches[0].clientY;
+});
 document.addEventListener('touchmove', e => {
-    if(window.scrollY === 0 && e.touches[0].clientY - startY > 80){
+    if(window.scrollY === 0 && e.touches[0].clientY - startY > 80 &&!isRefreshing){
+        isRefreshing = true;
         document.getElementById('ptrLoader').style.display = 'block';
-        setTimeout(()=>{ location.reload(); }, 800);
+        document.getElementById('ptrLoader').innerText = '⟳ Refreshing...';
+        setTimeout(()=>{
+            refreshDashboardData();
+            document.getElementById('ptrLoader').innerText = '✓ Refreshed';
+            setTimeout(()=>{
+                document.getElementById('ptrLoader').style.display = 'none';
+                document.getElementById('ptrLoader').innerText = '↓ Pull to Refresh';
+                isRefreshing = false;
+            }, 800);
+        }, 1000);
     }
 });
+function refreshDashboardData(){
+    updateUI();
+    updateDownloads();
+    let job = document.getElementById('jobTitle').value;
+    let skill = document.getElementById('skills').value;
+    let notice = document.getElementById('notice').value;
+    if(job || skill || notice){
+        searchCandidates();
+    } else {
+        document.getElementById('candidateList').innerHTML = "<div class='start-msg'>🔍 Enter details and click Search to find candidates</div>";
+    }
+    let randomCount = Math.floor(Math.random() * 5) + 1;
+    document.getElementById('candidateCount').innerText = randomCount;
+}
 
 // CANDIDATE LOGIC
 function loadCandidates() {
@@ -235,34 +284,22 @@ function searchCandidates() {
     let job = document.getElementById('jobTitle').value.toLowerCase().trim();
     let skill = document.getElementById('skills').value.toLowerCase().trim();
     let notice = document.getElementById('notice').value;
-    
+
     if(job === '' && skill === '' && notice === ''){
         alert('Please enter at least one field to search');
         return;
     }
-
-    // skills ni , tho split chesi array cheddam
-    let skillArray = skill.split(',').map(s => s.trim()).filter(s => s !== "");
-
+    let skillArray = skill.split(',').map(s => s.trim()).filter(s => s!== "");
     let filtered = candidates.filter(c => {
-        // 1. Job Title check - partial match
         let jobMatch = job === "" || c.designation.toLowerCase().includes(job);
-        
-        // 2. Skills check - any one skill match ayithe saripothundi
         let skillMatch = skillArray.length === 0 || skillArray.some(s => c.skills.toLowerCase().includes(s));
-        
-        // 3. Notice period check
         let noticeMatch = notice === "" || c.jobType === notice;
-        
         return jobMatch && skillMatch && noticeMatch;
     });
-
-    // Nuvve aithe top lo pettu
     filtered.sort((a,b) => {
         if(a.name.toLowerCase().includes("ganesh")) return -1;
         return 0;
     });
-
     if(filtered.length === 0){
         document.getElementById('candidateList').innerHTML = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found. Try 'Support' or 'Java'</h3>";
         return;
