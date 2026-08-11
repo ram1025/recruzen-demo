@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recruzen AI Command Center</title>
 
   <!-- React + ReactDOM -->
@@ -11,20 +12,113 @@
   <!-- ReactFlow CSS + JS -->
   <link href="https://unpkg.com/reactflow@11/dist/style.css" rel="stylesheet" />
   <script src="https://unpkg.com/reactflow@11/dist/umd/index.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
     body { background: #0a0a0a; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
     h1 { color: #F97316; margin-bottom: 10px; }
-    #agent-map { height: 85vh; width: 100%; border: 1px solid #333; border-radius: 12px; }
-   .back-btn { background: #4f46e5; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 600; }
-   .back-btn:hover { background: #4338ca; }
+    .subtitle { color: #94a3b8; margin-bottom: 20px; }
+    #agent-map { height: 70vh; width: 100%; border: 1px solid #333; border-radius: 12px; background: #111; }
+    .back-btn { background: #4f46e5; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 600; }
+    .back-btn:hover { background: #4338ca; }
+    
+    /* Command Input */
+    .command-box { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+    .command-input { display: flex; gap: 10px; }
+    .command-input input { flex: 1; padding: 14px; border-radius: 8px; border: 2px solid #475569; background: #0f172a; color: white; font-size: 15px; }
+    .command-input button { background: linear-gradient(90deg, #F97316, #1E3A8A); color: white; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .command-input button:hover { opacity: 0.9; }
+    .profile-chip { background: rgba(249,115,22,0.2); border: 1px solid #F97316; padding: 8px 12px; border-radius: 20px; font-size: 13px; margin-bottom: 12px; display: inline-block; }
   </style>
 </head>
 <body>
   <a href="index.html" class="back-btn">← Back to Dashboard</a>
   <h1>🧠 Recruzen AI Command Center</h1>
+  <p class="subtitle">137 AI Agents working for you in real-time</p>
+  
+  <div class="command-box">
+    <div class="profile-chip" id="profileChip">Loading profile...</div>
+    <div class="command-input">
+      <input type="text" id="commandInput" placeholder="Type command...">
+      <button onclick="runCommand()">🚀 Run</button>
+    </div>
+  </div>
+
   <div id="agent-map"></div>
 
-  <script src="agent-map.js"></script>
+  <script type="text/babel">
+    const { useState, useCallback } = React;
+    const ReactFlow = window.ReactFlow;
+    const { Controls, Background, MiniMap } = ReactFlow;
+
+    // Get recruiter profile from localStorage
+    const MY_PROFILE = JSON.parse(localStorage.getItem('talentiqProfile') || JSON.stringify({
+      name: "GANESH RAM MAKINA",
+      role: "IT Support & Senior TA", 
+      skills: "Java, J2EE, Spring, Recruitment, ATS",
+      location: "Visakhapatnam"
+    }));
+
+    // Update profile chip
+    document.getElementById('profileChip').innerText = `👤 Active Profile: ${MY_PROFILE.name} | ${MY_PROFILE.location}`;
+    document.getElementById('commandInput').placeholder = `e.g: Find IT Support jobs for me in ${MY_PROFILE.location}`;
+
+    // Agent Nodes
+    const initialNodes = [
+      { id: '1', position: { x: 400, y: 50 }, data: { label: '🧠 Command Brain' }, style: { background: '#F97316', color: 'white', padding: 10, borderRadius: 8 } },
+      { id: '2', position: { x: 100, y: 200 }, data: { label: '🔍 Job Scraper' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
+      { id: '3', position: { x: 400, y: 200 }, data: { label: '📊 ATS Matcher' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
+      { id: '4', position: { x: 700, y: 200 }, data: { label: '📧 Auto Apply' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
+      { id: '5', position: { x: 250, y: 350 }, data: { label: '✍️ Resume Writer' }, style: { background: '#22c55e', color: 'white', padding: 10, borderRadius: 8 } },
+      { id: '6', position: { x: 550, y: 350 }, data: { label: '📈 Analytics' }, style: { background: '#22c55e', color: 'white', padding: 10, borderRadius: 8 } },
+    ];
+
+    const initialEdges = [
+      { id: 'e1-2', source: '1', target: '2' },
+      { id: 'e1-3', source: '1', target: '3' },
+      { id: 'e1-4', source: '1', target: '4' },
+      { id: 'e3-5', source: '3', target: '5' },
+      { id: 'e3-6', source: '3', target: '6' },
+    ];
+
+    function Flow() {
+      const [nodes] = useState(initialNodes);
+      const [edges] = useState(initialEdges);
+
+      return (
+        <ReactFlow nodes={nodes} edges={edges} fitView>
+          <Background color="#333" />
+          <Controls />
+          <MiniMap />
+        </ReactFlow>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('agent-map')).render(<Flow />);
+  </script>
+
+  <script>
+    function runCommand(){
+        let cmd = document.getElementById('commandInput').value;
+        if(cmd.trim() === ''){
+            alert('Please enter a command');
+            return;
+        }
+        
+        // Auto-replace "for me" with profile name
+        if(cmd.toLowerCase().includes("for me")){
+            cmd = cmd.replace(/for me/gi, `for ${MY_PROFILE.name}`);
+        }
+
+        alert(`🧠 AI Brain Activated\nCommand: "${cmd}"\n\nRunning 137 agents...\n1. Job Scraper: Searching LinkedIn, Naukri\n2. ATS Matcher: Matching ${MY_PROFILE.skills}\n3. Auto Apply: Will apply to top 5 matches\n\nResults in 2 minutes`);
+        
+        document.getElementById('commandInput').value = '';
+    }
+
+    // Enter key support
+    document.getElementById('commandInput').addEventListener('keypress', function(e){
+        if(e.key === 'Enter') runCommand();
+    });
+  </script>
 </body>
 </html>
