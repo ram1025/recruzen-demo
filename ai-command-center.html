@@ -1,23 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recruzen AI Command Center</title>
+  
+  <!-- React + ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  
+  <!-- ReactFlow -->
   <script src="https://unpkg.com/reactflow@11/dist/umd/index.js"></script>
+  <link href="https://unpkg.com/reactflow@11/dist/style.css" rel="stylesheet" />
+
   <style>
-    body { background: #0a0a0a; color: white; font-family: sans-serif; }
-    .node { padding: 10px; border-radius: 8px; background: #1e1e1e; border: 1px solid #333; }
-    .sourcing { border-color: #3b82f6; }
-    .screening { border-color: #10b981; }
+    body { 
+      background: #0a0a0a; 
+      color: white; 
+      font-family: 'Segoe UI', Arial; 
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #F97316; }
+    #agent-map { 
+      height: 85vh; 
+      width: 100%;
+      border: 1px solid #333;
+      border-radius: 12px;
+    }
+   .back-btn {
+      background: #4f46e5;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
-  <h1>Recruzen AI Command Center</h1>
-  <div id="agent-map" style="height: 600px;"></div>
+  <a href="index.html" class="back-btn">← Back to Dashboard</a>
+  <h1>🧠 Recruzen AI Command Center</h1>
+  <div id="agent-map"></div>
   
-  <script>
-    // Here we will add 7 department nodes + 137 agent nodes
-    // SOURCING, SCREENING, INTELLIGENCE, DEALS, OPS, CLIENT, BACKOFFICE
-  </script>
+  <!-- This loads the brain -->
+  <script src="agent-map.js"></script>
 </body>
 </html>
