@@ -8,12 +8,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body {font-family: 'Segoe UI', Arial; background: #f8fafc;}
 .hidden{display:none!important}
-
 /* IMPORTANT: Start with both hidden, JS decides what to show */
 #loginPage, #dashboard {display:none;}
 body.show-login #loginPage{display:flex;}
 body.show-dashboard #dashboard{display:block;}
-
 /* LOGIN PAGE */
 .login-container{justify-content:center; align-items:center; min-height:100vh; background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);}
 .login-box{background:white; padding:40px 30px; border-radius:16px; width:90%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2);}
@@ -29,20 +27,18 @@ body.show-dashboard #dashboard{display:block;}
 .demo-box{background:#f0f4ff; border:1px dashed #4f46e5; border-radius:8px; padding:12px; margin-top:20px; text-align:center; font-size:13px;}
 .demo-box p{margin:4px 0; color:#1e293b;}
 .demo-box b{color:#4f46e5;}
-
 /* DASHBOARD */
 #dashboard{padding:20px;}
 .banner { background: linear-gradient(90deg, #1E3A8A 0%, #F97316 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 24px; }
-.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; } /* 4 columns now for pending */
 .kpi-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); }
 .kpi-card h3 { margin: 0; font-size: 14px; opacity: 0.9; }
 .kpi-card p { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; }
 .progress-bar {background: rgba(255,255,255,0.3); height: 8px; border-radius: 10px; margin-top: 8px; overflow: hidden;}
 .progress-fill {background: #F97316; height: 100%; border-radius: 10px; transition: 0.3s;}
-
 /* HEADER */
 .header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
-.header-left {display:flex; align-items:center; gap:20px;} /* increased gap for nav */
+.header-left {display:flex; align-items:center; gap:20px;}
 .logo {background:linear-gradient(135deg, #F97316, #1E3A8A); color:white; padding:8px 12px; border-radius:10px; font-weight:800; font-size:18px;}
 .nav-link {color:#4f46e5; text-decoration:none; font-weight:700; font-size:15px; padding:8px 12px; border-radius:8px; transition:0.2s;}
 .nav-link:hover {background:#eef2ff;}
@@ -55,32 +51,35 @@ body.show-dashboard #dashboard{display:block;}
 .dropdown a:hover {background:#f1f5f9;}
 .dropdown hr {margin:5px 0; border:none; border-top:1px solid #e5e7eb;}
 .credit-box {background: #fff; padding: 8px 16px; border-radius: 8px; border: 2px solid #4f46e5; font-weight:700; font-size:14px;}
-
 /* 2 COLUMN LAYOUT */
 .main-container {display: grid; grid-template-columns: 1fr 320px; gap: 20px;}
 .sidebar { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); height: fit-content; }
 .sidebar h3 {margin-top: 0; color: #1e293b; margin-bottom:15px;}
 .download-item {display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; font-size:14px;}
-@media(max-width: 1024px){.main-container {grid-template-columns: 1fr;}.sidebar {display:none;}.kpi-grid{ grid-template-columns: 1fr; } }
-
+@media(max-width: 1024px){.main-container {grid-template-columns: 1fr;}.sidebar {display:none;}.kpi-grid{ grid-template-columns: 1fr 1fr; } }
 .search-bar {background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;}
 .search-bar input,.search-bar select {padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; flex: 1; min-width: 200px; font-size:15px;}
 .btn {background: linear-gradient(90deg, #4f46e5, #7c3aed); color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;}
 .btn:hover {background: linear-gradient(90deg, #4338ca, #6d28d9);}
-
+.btn:disabled {opacity:0.5; cursor:not-allowed;}
 .candidate-card {background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 4px solid #ddd;}
 .candidate-card.new {border-left: 4px solid #22c55e; background: #f0fdf4;}
+.candidate-card.blocked {opacity:0.5; pointer-events:none;}
 .new-badge {float:right; background: #22c55e; color: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight:700;}
 .tag {background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 12px; margin-right: 6px; display: inline-block; margin-top: 6px; font-weight: 600;}
 .download-btn {background: linear-gradient(90deg, #22c55e, #16a34a); color: white; padding: 10px 15px; border: none; border-radius: 8px; float: right; cursor: pointer; font-weight:700;}
+.download-btn:disabled {background:gray;}
 .start-msg {text-align:center; color:gray; padding:60px 20px; font-size:16px;}
-
 /* PULL TO REFRESH */
 .ptr-loader{text-align:center; padding:10px; color:#4f46e5; font-weight:700; display:none; background:white; border-radius:8px; margin-bottom:15px;}
+/* NEW: FEEDBACK PANEL CSS */
+.feedback-panel{background:#fff3cd; border:1px solid #ffc107; padding:15px; border-radius:8px; margin-top:12px; clear:both;}
+.feedback-panel h4{margin:0 0 10px 0; color:#856404;}
+.feedback-panel select{width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; margin-bottom:10px;}
+.feedback-btn{background:#ffc107; color:#000; padding:10px 15px; border:none; border-radius:6px; font-weight:700; cursor:pointer; width:100%;}
 </style>
 </head>
 <body>
-
 <!-- 1. LOGIN PAGE -->
 <div class="login-container" id="loginPage">
     <div class="login-box">
@@ -105,26 +104,23 @@ body.show-dashboard #dashboard{display:block;}
         </div>
     </div>
 </div>
-
 <!-- 2. DASHBOARD -->
 <div id="dashboard">
     <div class="ptr-loader" id="ptrLoader">↓ Pull to Refresh</div>
-
     <div class="banner">
         <h1 style="margin:0; font-size: 28px; font-weight: 700;">RecruZen Suite 🚀</h1>
         <p style="margin:5px 0 0 0; opacity: 0.9;">AI-Powered Recruitment Platform</p>
-        <div class="kpi-grid">
+        <div class="kpi-grid" id="kpiGrid">
             <div class="kpi-card"><h3>Remaining Credits</h3><p><span id="bannerCredits">50</span> / 1500</p><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:3%;"></div></div></div>
             <div class="kpi-card"><h3>Plan Expiry</h3><p>24 Dec 2026</p></div>
             <div class="kpi-card"><h3>New Matches Today</h3><p><span id="candidateCount">0</span> Candidates</p></div>
+            <!-- Feedback Pending card will be added by JS -->
         </div>
     </div>
-
     <div class="header">
         <div class="header-left">
             <div class="logo">RZ</div>
             <div><h1 style="margin:0; color: #1e293b; font-size:20px;">RecruZen Suite</h1></div>
-            <!-- NEW: AI Command Center Link -->
             <a href="ai-command-center.html" class="nav-link">🧠 AI Command Center</a>
         </div>
         <div class="header-right">
@@ -151,14 +147,13 @@ body.show-dashboard #dashboard{display:block;}
             <div class="credit-box">Credits: <span id="credits">50</span></div>
         </div>
     </div>
-
     <div class="main-container">
         <div>
             <div class="search-bar">
                 <input type="text" id="jobTitle" placeholder="Job Title: Java Developer">
                 <input type="text" id="skills" placeholder="Skills: Java, Spring">
                 <select id="notice"><option value="">Any Notice Period</option><option>Immediately</option><option>15 Days</option><option>30 Days</option><option>60 Days</option></select>
-                <button class="btn" onclick="searchCandidates()">Search</button>
+                <button class="btn" id="searchBtn" onclick="searchCandidates()">Search</button>
             </div>
             <div id="candidateList">
                 <div class="start-msg">🔍 Enter details and click Search to find candidates</div>
@@ -170,16 +165,21 @@ body.show-dashboard #dashboard{display:block;}
         </div>
     </div>
 </div>
-
 <script>
-let credits = 50; let maxCredits = 1500; let candidates = []; let downloads = [];
+let credits = 50;
+let maxCredits = 1500;
+let candidates = [];
+let downloads = [];
+let pendingFeedback = JSON.parse(localStorage.getItem('recruzen_pending') || 'false');
+let lastDownloaded = localStorage.getItem('recruzen_last_download') || '';
+
 const dummyData = [
 {name: "GANESH RAM MAKINA", designation: "IT Support Specialist & Senior Talent Acquisition", jobType: "30 Days", skills: "Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS", location: "Visakhapatnam", exp: 9, isNew: false},
 {name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
 {name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false}
 ];
 
-// PAGE LOAD CHECK - runs immediately, no flicker
+// PAGE LOAD CHECK
 (function(){
     if(localStorage.getItem('recruzen_loggedin') === 'true'){
         document.body.classList.add('show-dashboard');
@@ -196,119 +196,85 @@ const dummyData = [
 })();
 
 // LOGIN LOGIC
-function togglePass(){
-    let p = document.getElementById('password');
-    p.type = p.type === 'password'? 'text' : 'password';
-}
-function forgotPassword(){
-    let email = document.getElementById('email').value;
-    if(email === ''){ alert('Please enter your Email ID first'); }
-    else { alert('Password reset link sent to ' + email); }
-}
-function login(){
-    let email = document.getElementById('email').value;
-    let pass = document.getElementById('password').value;
-    if(email === 'admin@recruzen.com' && pass === 'admin123'){
-        localStorage.setItem('recruzen_loggedin', 'true');
-        document.body.classList.remove('show-login');
-        document.body.classList.add('show-dashboard');
-        loadCandidates();
-        updateUI();
-    } else { alert('Invalid Email or Password'); }
-}
-function logout(){
-    localStorage.removeItem('recruzen_loggedin');
-    localStorage.removeItem('recruzen_search');
-    document.body.classList.remove('show-dashboard');
-    document.body.classList.add('show-login');
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-}
+function togglePass(){ let p = document.getElementById('password'); p.type = p.type === 'password'? 'text' : 'password'; }
+function forgotPassword(){ let email = document.getElementById('email').value; if(email === ''){ alert('Please enter your Email ID first'); } else { alert('Password reset link sent to ' + email); } }
+function login(){ let email = document.getElementById('email').value; let pass = document.getElementById('password').value; if(email === 'admin@recruzen.com' && pass === 'admin123'){ localStorage.setItem('recruzen_loggedin', 'true'); document.body.classList.remove('show-login'); document.body.classList.add('show-dashboard'); loadCandidates(); updateUI(); } else { alert('Invalid Email or Password'); } }
+function logout(){ localStorage.removeItem('recruzen_loggedin'); localStorage.removeItem('recruzen_search'); localStorage.removeItem('recruzen_pending'); localStorage.removeItem('recruzen_last_download'); document.body.classList.remove('show-dashboard'); document.body.classList.add('show-login'); document.getElementById('email').value = ''; document.getElementById('password').value = ''; }
 
 // DROPDOWNS
 function toggleDropdown() { document.getElementById("profileDropdown").classList.toggle("show"); }
 function toggleBell() { document.getElementById("bellDropdown").classList.toggle("show"); }
-window.onclick = function(event) {
-    if (!event.target.closest('.profile')) document.getElementById("profileDropdown").classList.remove('show');
-    if (!event.target.closest('.bell')) document.getElementById("bellDropdown").classList.remove('show');
-}
+window.onclick = function(event) { if (!event.target.closest('.profile')) document.getElementById("profileDropdown").classList.remove('show'); if (!event.target.closest('.bell')) document.getElementById("bellDropdown").classList.remove('show'); }
 
-// PULL TO REFRESH - WITHOUT LOGOUT
-let startY = 0;
-let isRefreshing = false;
-document.addEventListener('touchstart', e => {
-    if(window.scrollY === 0) startY = e.touches[0].clientY;
-});
-document.addEventListener('touchmove', e => {
-    if(window.scrollY === 0 && e.touches[0].clientY - startY > 80 &&!isRefreshing){
-        isRefreshing = true;
-        document.getElementById('ptrLoader').style.display = 'block';
-        document.getElementById('ptrLoader').innerText = '⟳ Refreshing...';
-        setTimeout(()=>{
-            refreshDashboardData();
-            document.getElementById('ptrLoader').innerText = '✓ Refreshed';
-            setTimeout(()=>{
-                document.getElementById('ptrLoader').style.display = 'none';
-                document.getElementById('ptrLoader').innerText = '↓ Pull to Refresh';
-                isRefreshing = false;
-            }, 800);
-        }, 1000);
-    }
-});
-function refreshDashboardData(){
-    updateUI();
-    updateDownloads();
-    let job = document.getElementById('jobTitle').value;
-    let skill = document.getElementById('skills').value;
-    let notice = document.getElementById('notice').value;
-    if(job || skill || notice){
-        searchCandidates();
-    } else {
-        document.getElementById('candidateList').innerHTML = "<div class='start-msg'>🔍 Enter details and click Search to find candidates</div>";
-    }
-    let randomCount = Math.floor(Math.random() * 5) + 1;
-    document.getElementById('candidateCount').innerText = randomCount;
-}
+// PULL TO REFRESH
+let startY = 0; let isRefreshing = false;
+document.addEventListener('touchstart', e => { if(window.scrollY === 0) startY = e.touches[0].clientY; });
+document.addEventListener('touchmove', e => { if(window.scrollY === 0 && e.touches[0].clientY - startY > 80 &&!isRefreshing){ isRefreshing = true; document.getElementById('ptrLoader').style.display = 'block'; document.getElementById('ptrLoader').innerText = '⟳ Refreshing...'; setTimeout(()=>{ refreshDashboardData(); document.getElementById('ptrLoader').innerText = '✓ Refreshed'; setTimeout(()=>{ document.getElementById('ptrLoader').style.display = 'none'; document.getElementById('ptrLoader').innerText = '↓ Pull to Refresh'; isRefreshing = false; }, 800); }, 1000); } });
+function refreshDashboardData(){ updateUI(); updateDownloads(); let job = document.getElementById('jobTitle').value; let skill = document.getElementById('skills').value; let notice = document.getElementById('notice').value; if(job || skill || notice){ searchCandidates(); } else { document.getElementById('candidateList').innerHTML = "<div class='start-msg'>🔍 Enter details and click Search to find candidates</div>"; } let randomCount = Math.floor(Math.random() * 5) + 1; document.getElementById('candidateCount').innerText = randomCount; }
 
 // CANDIDATE LOGIC
-function loadCandidates() {
-    let savedProfile = localStorage.getItem("talentiqProfile");
-    candidates = savedProfile? [JSON.parse(savedProfile),...dummyData] : [...dummyData];
-}
+function loadCandidates() { let savedProfile = localStorage.getItem("talentiqProfile"); candidates = savedProfile? [JSON.parse(savedProfile),...dummyData] : [...dummyData]; }
 function updateUI() {
     document.getElementById('credits').innerText = credits;
     document.getElementById('bannerCredits').innerText = credits;
     document.getElementById('progressFill').style.width = (credits / maxCredits) * 100 + '%';
+
+    // Update KPI Grid for pending feedback
+    let kpiHTML = `
+        <div class="kpi-card"><h3>Remaining Credits</h3><p><span id="bannerCredits">${credits}</span> / 1500</p><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${(credits / maxCredits) * 100}%;"></div></div></div>
+        <div class="kpi-card"><h3>Plan Expiry</h3><p>24 Dec 2026</p></div>
+        <div class="kpi-card"><h3>New Matches Today</h3><p><span id="candidateCount">0</span> Candidates</p></div>`;
+    if(pendingFeedback){
+        kpiHTML += `<div class="kpi-card" style="background:rgba(255,193,7,0.3);"><h3>⚠️ Feedback Pending</h3><p>1</p></div>`;
+        document.getElementById('searchBtn').disabled = true;
+    } else {
+        document.getElementById('searchBtn').disabled = false;
+    }
+    document.getElementById('kpiGrid').innerHTML = kpiHTML;
 }
-function updateDownloads() {
-    let html = downloads.length === 0? "<p style='color:gray; font-size:14px;'>No downloads yet</p>" : "";
-    downloads.slice(0,5).forEach(d => { html += `<div class="download-item"><span>${d.name}</span><span style="color:gray; font-size:12px;">${d.time}</span></div>`; });
-    document.getElementById('recentDownloads').innerHTML = html;
-}
+function updateDownloads() { let html = downloads.length === 0? "<p style='color:gray; font-size:14px;'>No downloads yet</p>" : ""; downloads.slice(0,5).forEach(d => { html += `<div class="download-item"><span>${d.name}</span><span style="color:gray; font-size:12px;">${d.time}</span></div>`; }); document.getElementById('recentDownloads').innerHTML = html; }
+
 function displayCandidates(list) {
     updateUI();
     document.getElementById('candidateCount').innerText = list.length;
     let html = "";
     if(list.length === 0) { html = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found</h3>"; }
     list.forEach(c => {
+        let feedbackHTML = "";
+        // Show feedback panel only for last downloaded candidate and if pending
+        if(pendingFeedback && c.name === lastDownloaded){
+            feedbackHTML = `
+            <div class="feedback-panel">
+                <h4>⚠️ Update Status for ${c.name}</h4>
+                <select id="statusSelect">
+                    <option>Downloaded</option>
+                    <option>Shortlisted</option>
+                    <option>1st Interview Scheduled</option>
+                    <option>2nd Interview</option>
+                    <option>Rejected</option>
+                    <option>Hired</option>
+                </select>
+                <button class="feedback-btn" onclick="updateFeedback('${c.name}')">Submit Feedback</button>
+                <p style="font-size:12px; color:red; margin-top:8px;">Due in 3 days. Pending = New Downloads Blocked</p>
+            </div>`;
+        }
         html += `<div class="candidate-card ${c.isNew? 'new' : ''}">
         ${c.isNew? '<span class="new-badge">NEW</span>' : ''}
         <h3>${c.name}</h3><p><b>${c.designation}</b> | ${c.exp} Years | ${c.location}</p>
         <p><b>Notice:</b> ${c.jobType}</p><p>${c.skills.split(',').map(s => `<span class="tag">${s.trim()}</span>`).join('')}</p>
-        <button class="download-btn" onclick="downloadResume('${c.name}')">Download - 1 Credit</button></div>`;
+        <button class="download-btn" ${pendingFeedback? 'disabled' : ''} onclick="downloadResume('${c.name}')">Download - 1 Credit</button>
+        ${feedbackHTML}
+        </div>`;
     });
     document.getElementById('candidateList').innerHTML = html;
 }
+
 function searchCandidates() {
     let job = document.getElementById('jobTitle').value.toLowerCase().trim();
     let skill = document.getElementById('skills').value.toLowerCase().trim();
     let notice = document.getElementById('notice').value;
     localStorage.setItem('recruzen_search', JSON.stringify({job:job, skill:skill, notice:notice}));
-
-    if(job === '' && skill === '' && notice === ''){
-        alert('Please enter at least one field to search');
-        return;
-    }
+    if(job === '' && skill === '' && notice === ''){ alert('Please enter at least one field to search'); return; }
     let skillArray = skill.split(',').map(s => s.trim()).filter(s => s!== "");
     let filtered = candidates.filter(c => {
         let jobMatch = job === "" || c.designation.toLowerCase().includes(job);
@@ -316,22 +282,41 @@ function searchCandidates() {
         let noticeMatch = notice === "" || c.jobType === notice;
         return jobMatch && skillMatch && noticeMatch;
     });
-    filtered.sort((a,b) => {
-        if(a.name.toLowerCase().includes("ganesh")) return -1;
-        return 0;
-    });
-    if(filtered.length === 0){
-        document.getElementById('candidateList').innerHTML = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found. Try 'Support' or 'Java'</h3>";
-        return;
-    }
+    filtered.sort((a,b) => { if(a.name.toLowerCase().includes("ganesh")) return -1; return 0; });
+    if(filtered.length === 0){ document.getElementById('candidateList').innerHTML = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found. Try 'Support' or 'Java'</h3>"; return; }
     displayCandidates(filtered);
 }
+
+// UPDATED: downloadResume with BLOCK LOGIC
 function downloadResume(name) {
+    if(pendingFeedback){
+        alert("⚠️ You have 1 pending feedback. Please update status first to download new resumes.");
+        return;
+    }
     if(credits > 0) {
-        credits--; downloads.unshift({name: name, time: "Just now"});
-        updateDownloads(); updateUI();
-        alert(`Downloading ${name}'s Resume. Credits left: ${credits}`);
+        credits--;
+        downloads.unshift({name: name, time: "Just now"});
+        pendingFeedback = true; // Set pending
+        lastDownloaded = name;
+        localStorage.setItem('recruzen_pending', 'true');
+        localStorage.setItem('recruzen_last_download', name);
+        localStorage.setItem('recruzen_feedback_due', Date.now() + 3*24*60*60*1000); // 3 days
+        updateDownloads();
+        updateUI();
+        alert(`Downloading ${name}'s Resume. Credits left: ${credits}\n\n⚠️ Please update candidate status within 3 days`);
+        searchCandidates(); // refresh to show feedback panel
     } else { alert("No credits left! Please buy credits."); }
+}
+
+// NEW: Update Feedback Function
+function updateFeedback(candidateName){
+    let status = document.getElementById('statusSelect').value;
+    pendingFeedback = false;
+    lastDownloaded = '';
+    localStorage.setItem('recruzen_pending', 'false');
+    localStorage.setItem('recruzen_last_download', '');
+    alert(`✅ Status Updated: ${status}\n\nNotification sent to ${candidateName}'s TalentIQ Mobile App`);
+    searchCandidates(); // refresh
 }
 </script>
 </body>
