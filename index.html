@@ -42,8 +42,10 @@ body.show-dashboard #dashboard{display:block;}
 
 /* HEADER */
 .header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);}
-.header-left {display:flex; align-items:center; gap:12px;}
+.header-left {display:flex; align-items:center; gap:20px;} /* increased gap for nav */
 .logo {background:linear-gradient(135deg, #F97316, #1E3A8A); color:white; padding:8px 12px; border-radius:10px; font-weight:800; font-size:18px;}
+.nav-link {color:#4f46e5; text-decoration:none; font-weight:700; font-size:15px; padding:8px 12px; border-radius:8px; transition:0.2s;}
+.nav-link:hover {background:#eef2ff;}
 .header-right {display:flex; align-items:center; gap:20px; position:relative;}
 .bell,.profile{position:relative; cursor:pointer;}
 .bell-badge {position:absolute; top:-5px; right:-5px; background:red; color:white; font-size:10px; padding:2px 6px; border-radius:50%; font-weight:700;}
@@ -122,6 +124,8 @@ body.show-dashboard #dashboard{display:block;}
         <div class="header-left">
             <div class="logo">RZ</div>
             <div><h1 style="margin:0; color: #1e293b; font-size:20px;">RecruZen Suite</h1></div>
+            <!-- NEW: AI Command Center Link -->
+            <a href="ai-command-center.html" class="nav-link">🧠 AI Command Center</a>
         </div>
         <div class="header-right">
             <div class="bell" onclick="toggleBell()">
