@@ -1,124 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recruzen AI Command Center</title>
-
-  <!-- React + ReactDOM -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
-  <!-- ReactFlow CSS + JS -->
-  <link href="https://unpkg.com/reactflow@11/dist/style.css" rel="stylesheet" />
-  <script src="https://unpkg.com/reactflow@11/dist/umd/index.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <style>
-    body { background: #0a0a0a; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-    h1 { color: #F97316; margin-bottom: 10px; }
-    .subtitle { color: #94a3b8; margin-bottom: 20px; }
-    #agent-map { height: 70vh; width: 100%; border: 1px solid #333; border-radius: 12px; background: #111; }
-    .back-btn { background: #4f46e5; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 600; }
-    .back-btn:hover { background: #4338ca; }
-    
-    /* Command Input */
-    .command-box { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
-    .command-input { display: flex; gap: 10px; }
-    .command-input input { flex: 1; padding: 14px; border-radius: 8px; border: 2px solid #475569; background: #0f172a; color: white; font-size: 15px; }
-    .command-input button { background: linear-gradient(90deg, #F97316, #1E3A8A); color: white; padding: 14px 24px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .command-input button:hover { opacity: 0.9; }
-    .profile-chip { background: rgba(249,115,22,0.2); border: 1px solid #F97316; padding: 8px 12px; border-radius: 20px; font-size: 13px; margin-bottom: 12px; display: inline-block; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RecruZen AI Command Center</title>
+<script src="data.js"></script>
+<style>
+*{box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:20px}
+h1{color:#F97316;margin:0 0 6px}
+.subtitle{color:#94a3b8;margin:0 0 20px}
+.back-btn{background:#4f46e5;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-bottom:20px;font-weight:600}
+.command-box{background:#1e293b;padding:20px;border-radius:12px;margin-bottom:20px;border:1px solid #334155}
+.command-input{display:flex;gap:10px;flex-wrap:wrap}
+.command-input input{flex:1;min-width:220px;padding:14px;border-radius:8px;border:2px solid #475569;background:#0f172a;color:#fff;font-size:15px}
+.command-input button{background:linear-gradient(90deg,#F97316,#1E3A8A);color:#fff;padding:14px 24px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+.command-input button:disabled{opacity:.5;cursor:wait}
+.chips{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:rgba(249,115,22,.15);border:1px solid #F97316;color:#fed7aa;padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #333;border-radius:12px;padding:16px}
+.panel h3{margin:0 0 12px;color:#F97316}
+#map{width:100%;height:auto;display:block}
+.node rect{fill:#1e293b;stroke-width:2}
+.node text{fill:#fff;font-size:13px;font-weight:600}
+.node{cursor:pointer}
+.node.active rect{fill:#14532d}
+.edge{stroke:#475569;stroke-width:2}
+.edge.active{stroke:#22c55e;stroke-dasharray:6 4;animation:dash .6s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-20}}
+.log{font-family:Consolas,monospace;font-size:13px;color:#cbd5e1;max-height:220px;overflow:auto;white-space:pre-wrap}
+.result{background:#1e293b;border-left:4px solid #22c55e;padding:12px;border-radius:8px;margin-bottom:10px}
+.result b{color:#fff}.result small{color:#94a3b8}
+.score{float:right;background:#22c55e;color:#04210f;font-weight:800;padding:3px 9px;border-radius:20px;font-size:12px}
+#info{color:#94a3b8;font-size:14px}
+</style>
 </head>
 <body>
-  <a href="index.html" class="back-btn">← Back to Dashboard</a>
-  <h1>🧠 Recruzen AI Command Center</h1>
-  <p class="subtitle">137 AI Agents working for you in real-time</p>
-  
-  <div class="command-box">
-    <div class="profile-chip" id="profileChip">Loading profile...</div>
-    <div class="command-input">
-      <input type="text" id="commandInput" placeholder="Type command...">
-      <button onclick="runCommand()">🚀 Run</button>
-    </div>
+<a href="index.html" class="back-btn">← Back to Dashboard</a>
+<h1>🧠 RecruZen AI Command Center</h1>
+<p class="subtitle">Tell the AI what you need. Agents search, screen and rank candidates for you.</p>
+
+<div class="command-box">
+  <div class="command-input">
+    <input type="text" id="commandInput" placeholder='e.g. Find 3 Java developers in Hyderabad'>
+    <button id="runBtn" onclick="runCommand()">🚀 Run</button>
   </div>
+  <div class="chips">
+    <span class="chip" onclick="useCmd('Find 3 Java developers in Hyderabad')">Java devs in Hyderabad</span>
+    <span class="chip" onclick="useCmd('Find immediate joiners for Python')">Immediate Python joiners</span>
+    <span class="chip" onclick="useCmd('Find IT support candidates in Bangalore')">IT support, Bangalore</span>
+    <span class="chip" onclick="useCmd('Find recruiters with ATS experience')">Recruiters with ATS</span>
+  </div>
+</div>
 
-  <div id="agent-map"></div>
+<div class="grid">
+  <div class="panel">
+    <h3>Agent Map</h3>
+    <svg id="map" viewBox="0 0 700 380"></svg>
+    <p id="info">Tap any agent to see what it does.</p>
+  </div>
+  <div class="panel">
+    <h3>Live Activity</h3>
+    <div class="log" id="log">Waiting for a command...</div>
+    <h3 style="margin-top:16px">Top Matches</h3>
+    <div id="results"><p style="color:#64748b">Results will appear here.</p></div>
+  </div>
+</div>
 
-  <script type="text/babel">
-    const { useState, useCallback } = React;
-    const ReactFlow = window.ReactFlow;
-    const { Controls, Background, MiniMap } = ReactFlow;
+<script>
+var esc = window.rzEsc;
+var NODES = [
+  {id:'brain', label:'🧠 Command Brain', x:350, y:40, info:'Understands your request and sends work to the right agents.'},
+  {id:'src', label:'🔍 Sourcing', x:110, y:150, info:'Looks through the candidate pool and job boards for people who fit.'},
+  {id:'scr', label:'📄 Resume Screener', x:350, y:150, info:'Reads resumes and checks skills, experience and notice period.'},
+  {id:'loc', label:'📍 Location Filter', x:590, y:150, info:'Keeps candidates in or near the city you asked for.'},
+  {id:'rank', label:'📊 ATS Ranker', x:230, y:270, info:'Gives every candidate a match score and sorts them.'},
+  {id:'out', label:'📧 Shortlist & Notify', x:470, y:270, info:'Builds the shortlist and can notify candidates through TalentIQ.'}
+];
+var EDGES = [['brain','src'],['brain','scr'],['brain','loc'],['src','rank'],['scr','rank'],['loc','out'],['rank','out']];
+function n(id){ return NODES.filter(function(x){return x.id===id;})[0]; }
+function drawMap(){
+  var svg = document.getElementById('map'), h='';
+  EDGES.forEach(function(e,i){ var a=n(e[0]),b=n(e[1]); h+='<line class="edge" id="e'+i+'" x1="'+a.x+'" y1="'+(a.y+18)+'" x2="'+b.x+'" y2="'+(b.y+18)+'"/>'; });
+  NODES.forEach(function(d){ h+='<g class="node" id="n_'+d.id+'" onclick="showInfo(\''+d.id+'\')"><rect x="'+(d.x-85)+'" y="'+d.y+'" width="170" height="36" rx="8" stroke="'+(d.id==='brain'?'#F97316':'#3b82f6')+'"/><text x="'+d.x+'" y="'+(d.y+23)+'" text-anchor="middle">'+d.label+'</text></g>'; });
+  svg.innerHTML = h;
+}
+function showInfo(id){ var d=n(id); document.getElementById('info').innerText = d.label + ': ' + d.info; }
+function setActive(ids){
+  NODES.forEach(function(d){ document.getElementById('n_'+d.id).classList.toggle('active', ids.indexOf(d.id)>=0); });
+  EDGES.forEach(function(e,i){ document.getElementById('e'+i).classList.toggle('active', ids.indexOf(e[0])>=0 && ids.indexOf(e[1])>=0); });
+}
+drawMap();
 
-    // Get recruiter profile from localStorage
-    const MY_PROFILE = JSON.parse(localStorage.getItem('talentiqProfile') || JSON.stringify({
-      name: "GANESH RAM MAKINA",
-      role: "IT Support & Senior TA", 
-      skills: "Java, J2EE, Spring, Recruitment, ATS",
-      location: "Visakhapatnam"
-    }));
+function useCmd(t){ document.getElementById('commandInput').value=t; runCommand(); }
+var CITIES = ['hyderabad','bangalore','bengaluru','chennai','pune','noida','gurugram','kochi','visakhapatnam','vizag','vijayawada','mumbai','delhi'];
+var STOP = ['find','me','for','in','with','the','a','an','and','of','who','candidates','candidate','developers','developer','experience','show','get','top','joiners','joiner','immediate','people','need','want','i'];
+function parse(cmd){
+  var t = cmd.toLowerCase();
+  var num = (t.match(/\b(\d{1,2})\b/)||[])[1];
+  var city = CITIES.filter(function(c){return t.indexOf(c)>=0;})[0] || '';
+  if(city==='bengaluru') city='bangalore'; if(city==='vizag') city='visakhapatnam';
+  var words = t.replace(/[^a-z0-9+.# ]/g,' ').split(/\s+/).filter(function(w){ return w && STOP.indexOf(w)<0 && CITIES.indexOf(w)<0 && !/^\d+$/.test(w); });
+  return {limit: num?Number(num):5, city:city, words:words, immediate: t.indexOf('immediate')>=0};
+}
+function score(c,q){
+  var hay = (c.designation+' '+c.skills).toLowerCase(), s=40;
+  q.words.forEach(function(w){ if(hay.indexOf(w.replace(/s$/,''))>=0) s+=20; });
+  if(q.city && c.location.toLowerCase()===q.city) s+=15;
+  if(q.immediate && c.jobType==='Immediately') s+=15;
+  s += Math.min(c.exp,10);
+  return Math.min(99,s);
+}
+function log(line){ var el=document.getElementById('log'); el.textContent = (el.textContent==='Waiting for a command...'?'':el.textContent+'\n') + line; el.scrollTop=el.scrollHeight; }
 
-    // Update profile chip
-    document.getElementById('profileChip').innerText = `👤 Active Profile: ${MY_PROFILE.name} | ${MY_PROFILE.location}`;
-    document.getElementById('commandInput').placeholder = `e.g: Find IT Support jobs for me in ${MY_PROFILE.location}`;
-
-    // Agent Nodes
-    const initialNodes = [
-      { id: '1', position: { x: 400, y: 50 }, data: { label: '🧠 Command Brain' }, style: { background: '#F97316', color: 'white', padding: 10, borderRadius: 8 } },
-      { id: '2', position: { x: 100, y: 200 }, data: { label: '🔍 Job Scraper' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
-      { id: '3', position: { x: 400, y: 200 }, data: { label: '📊 ATS Matcher' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
-      { id: '4', position: { x: 700, y: 200 }, data: { label: '📧 Auto Apply' }, style: { background: '#1E3A8A', color: 'white', padding: 10, borderRadius: 8 } },
-      { id: '5', position: { x: 250, y: 350 }, data: { label: '✍️ Resume Writer' }, style: { background: '#22c55e', color: 'white', padding: 10, borderRadius: 8 } },
-      { id: '6', position: { x: 550, y: 350 }, data: { label: '📈 Analytics' }, style: { background: '#22c55e', color: 'white', padding: 10, borderRadius: 8 } },
-    ];
-
-    const initialEdges = [
-      { id: 'e1-2', source: '1', target: '2' },
-      { id: 'e1-3', source: '1', target: '3' },
-      { id: 'e1-4', source: '1', target: '4' },
-      { id: 'e3-5', source: '3', target: '5' },
-      { id: 'e3-6', source: '3', target: '6' },
-    ];
-
-    function Flow() {
-      const [nodes] = useState(initialNodes);
-      const [edges] = useState(initialEdges);
-
-      return (
-        <ReactFlow nodes={nodes} edges={edges} fitView>
-          <Background color="#333" />
-          <Controls />
-          <MiniMap />
-        </ReactFlow>
-      );
-    }
-
-    ReactDOM.createRoot(document.getElementById('agent-map')).render(<Flow />);
-  </script>
-
-  <script>
-    function runCommand(){
-        let cmd = document.getElementById('commandInput').value;
-        if(cmd.trim() === ''){
-            alert('Please enter a command');
-            return;
-        }
-        
-        // Auto-replace "for me" with profile name
-        if(cmd.toLowerCase().includes("for me")){
-            cmd = cmd.replace(/for me/gi, `for ${MY_PROFILE.name}`);
-        }
-
-        alert(`🧠 AI Brain Activated\nCommand: "${cmd}"\n\nRunning 137 agents...\n1. Job Scraper: Searching LinkedIn, Naukri\n2. ATS Matcher: Matching ${MY_PROFILE.skills}\n3. Auto Apply: Will apply to top 5 matches\n\nResults in 2 minutes`);
-        
-        document.getElementById('commandInput').value = '';
-    }
-
-    // Enter key support
-    document.getElementById('commandInput').addEventListener('keypress', function(e){
-        if(e.key === 'Enter') runCommand();
-    });
-  </script>
+function runCommand(){
+  var cmd = document.getElementById('commandInput').value.trim();
+  if(!cmd){ alert('Please type a command'); return; }
+  var btn=document.getElementById('runBtn'); btn.disabled=true;
+  document.getElementById('log').textContent=''; document.getElementById('results').innerHTML='<p style="color:#64748b">Agents are working...</p>';
+  var q = parse(cmd), pool = window.rzAllCandidates();
+  var steps = [
+    [['brain'], '🧠 Brain: understood "'+cmd+'"'],
+    [['brain','src'], '🔍 Sourcing: scanning '+pool.length+' candidate profiles'],
+    [['brain','src','scr'], '📄 Screener: checking skills'+(q.words.length?' for '+q.words.join(', '):'')],
+    [['brain','src','scr','loc'], '📍 Location: '+(q.city?'keeping '+q.city:'all cities')],
+    [['brain','src','scr','loc','rank'], '📊 Ranker: scoring and sorting matches'],
+    [['brain','src','scr','loc','rank','out'], '📧 Shortlist ready']
+  ];
+  var i=0;
+  (function next(){
+    if(i<steps.length){ setActive(steps[i][0]); log(steps[i][1]); i++; setTimeout(next,600); return; }
+    var list = pool.filter(function(c){
+      var hay=(c.designation+' '+c.skills).toLowerCase();
+      var okW = q.words.length===0 || q.words.some(function(w){return hay.indexOf(w.replace(/s$/,''))>=0;});
+      var okC = !q.city || c.location.toLowerCase()===q.city;
+      var okI = !q.immediate || c.jobType==='Immediately';
+      return okW && okC && okI;
+    }).map(function(c){return {c:c,s:score(c,q)};}).sort(function(a,b){return b.s-a.s;}).slice(0,q.limit);
+    log('✅ Done: '+list.length+' match'+(list.length===1?'':'es')+' found');
+    document.getElementById('results').innerHTML = list.length ? list.map(function(r){
+      return '<div class="result"><span class="score">'+r.s+'% match</span><b>'+esc(r.c.name)+'</b><br><small>'+esc(r.c.designation)+' · '+esc(r.c.exp)+' yrs · '+esc(r.c.location)+' · Notice: '+esc(r.c.jobType)+'</small></div>';
+    }).join('') + '<a href="index.html" class="back-btn" style="margin:6px 0 0">Open dashboard to download resumes</a>'
+    : '<p style="color:#fca5a5">No matches. Try another skill or city.</p>';
+    btn.disabled=false;
+  })();
+}
+document.getElementById('commandInput').addEventListener('keypress', function(e){ if(e.key==='Enter') runCommand(); });
+</script>
 </body>
 </html>
