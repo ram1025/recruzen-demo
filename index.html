@@ -68,7 +68,9 @@ body.show-dashboard #dashboard{display:block;}
 .new-badge {float:right; background: #22c55e; color: white; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight:700;}
 .tag {background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 20px; font-size: 12px; margin-right: 6px; display: inline-block; margin-top: 6px; font-weight: 600;}
 .download-btn {background: linear-gradient(90deg, #22c55e, #16a34a); color: white; padding: 10px 15px; border: none; border-radius: 8px; float: right; cursor: pointer; font-weight:700;}
-.download-btn:disabled {background:gray;}
+.download-btn:disabled {background:gray; cursor:not-allowed;}
+.status-pill{display:inline-block; background:#eef2ff; color:#4338ca; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; margin-top:8px;}
+@media(max-width:640px){.header{flex-direction:column; gap:12px; align-items:flex-start}.header-right{flex-wrap:wrap}.kpi-grid{grid-template-columns:1fr 1fr}.download-btn{float:none; margin-top:10px; width:100%}}
 .start-msg {text-align:center; color:gray; padding:60px 20px; font-size:16px;}
 /* PULL TO REFRESH */
 .ptr-loader{text-align:center; padding:10px; color:#4f46e5; font-weight:700; display:none; background:white; border-radius:8px; margin-bottom:15px;}
@@ -78,6 +80,7 @@ body.show-dashboard #dashboard{display:block;}
 .feedback-panel select{width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; margin-bottom:10px;}
 .feedback-btn{background:#ffc107; color:#000; padding:10px 15px; border:none; border-radius:6px; font-weight:700; cursor:pointer; width:100%;}
 </style>
+<script src="data.js"></script>
 </head>
 <body>
 <!-- 1. LOGIN PAGE -->
@@ -107,6 +110,7 @@ body.show-dashboard #dashboard{display:block;}
 <!-- 2. DASHBOARD -->
 <div id="dashboard">
     <div class="ptr-loader" id="ptrLoader">↓ Pull to Refresh</div>
+    <div id="pendingBox"></div>
     <div class="banner">
         <h1 style="margin:0; font-size: 28px; font-weight: 700;">RecruZen Suite 🚀</h1>
         <p style="margin:5px 0 0 0; opacity: 0.9;">AI-Powered Recruitment Platform</p>
@@ -126,7 +130,7 @@ body.show-dashboard #dashboard{display:block;}
         <div class="header-right">
             <div class="bell" onclick="toggleBell()">
                 <span style="font-size:22px;">🔔</span>
-                <span class="bell-badge">3</span>
+                <span class="bell-badge" id="bellBadge">3</span>
                 <div class="dropdown" id="bellDropdown">
                     <a href="#">New candidate matched: Java Dev</a>
                     <a href="#">Credits expiring in 30 days</a>
@@ -135,11 +139,12 @@ body.show-dashboard #dashboard{display:block;}
             </div>
             <div class="profile" onclick="toggleDropdown()">
                 <img src="https://i.pravatar.cc/40" style="border-radius:50%; width:40px; height:40px;">
-                <p style="margin:0; font-weight:700; font-size:14px;">Recruiter Admin ▼</p>
+                <p style="margin:0; font-weight:700; font-size:14px; display:inline-block; vertical-align:middle; margin-left:6px;">Recruiter Admin ▼</p>
                 <div class="dropdown" id="profileDropdown">
                     <a href="#" onclick="alert('Profile Page')">👤 My Profile</a>
                     <a href="#" onclick="alert('Settings Page')">⚙️ Settings</a>
-                    <a href="#" onclick="alert('Billing Page')">💳 Billing</a>
+                    <a href="#" onclick="buyCredits()">💳 Buy 100 Credits (demo)</a>
+                    <a href="#" onclick="resetDemo()">🔄 Reset Demo Data</a>
                     <hr>
                     <a href="#" style="color:#ef4444;" onclick="logout()">🚪 Logout</a>
                 </div>
@@ -153,7 +158,8 @@ body.show-dashboard #dashboard{display:block;}
                 <input type="text" id="jobTitle" placeholder="Job Title: Java Developer">
                 <input type="text" id="skills" placeholder="Skills: Java, Spring">
                 <select id="notice"><option value="">Any Notice Period</option><option>Immediately</option><option>15 Days</option><option>30 Days</option><option>60 Days</option></select>
-                <button class="btn" id="searchBtn" onclick="searchCandidates()">Search</button>
+                <button class="btn" id="searchBtn" onclick="searchCandidates(true)">Search</button>
+                <button class="btn" style="background:#64748b" onclick="showAll()">Show All</button>
             </div>
             <div id="candidateList">
                 <div class="start-msg">🔍 Enter details and click Search to find candidates</div>
@@ -166,157 +172,158 @@ body.show-dashboard #dashboard{display:block;}
     </div>
 </div>
 <script>
-let credits = 50;
-let maxCredits = 1500;
-let candidates = [];
-let downloads = [];
-let pendingFeedback = JSON.parse(localStorage.getItem('recruzen_pending') || 'false');
-let lastDownloaded = localStorage.getItem('recruzen_last_download') || '';
+var MAX_CREDITS = 1500;
+var S = loadState();
+function loadState(){
+  var d = {credits:50, downloads:[], statuses:{}, pending:null};
+  try { var x = JSON.parse(localStorage.getItem('recruzen_state')||'null'); if(x) d = Object.assign(d,x); } catch(e){}
+  return d;
+}
+function save(){ localStorage.setItem('recruzen_state', JSON.stringify(S)); }
+var candidates = [];
+var lastList = null;
+var esc = window.rzEsc;
 
-const dummyData = [
-{name: "GANESH RAM MAKINA", designation: "IT Support Specialist & Senior Talent Acquisition", jobType: "30 Days", skills: "Java, J2EE, Spring Boot, WebSphere, Kibana, Grafana, Recruitment, ATS", location: "Visakhapatnam", exp: 9, isNew: false},
-{name: "Priya Sharma", designation: "Senior Recruiter", jobType: "30 Days", skills: "Recruitment, ATS, LinkedIn", location: "Bangalore", exp: 5, isNew: false},
-{name: "Rahul Verma", designation: "Java Developer", jobType: "30 Days", skills: "Java, Spring Boot, Microservices", location: "Hyderabad", exp: 4, isNew: false}
-];
-
-// PAGE LOAD CHECK
 (function(){
-    if(localStorage.getItem('recruzen_loggedin') === 'true'){
-        document.body.classList.add('show-dashboard');
-        loadCandidates();
-        updateUI();
-        let saved = JSON.parse(localStorage.getItem('recruzen_search') || '{}');
-        if(saved.job){ document.getElementById('jobTitle').value = saved.job; }
-        if(saved.skill){ document.getElementById('skills').value = saved.skill; }
-        if(saved.notice){ document.getElementById('notice').value = saved.notice; }
-        if(saved.job || saved.skill || saved.notice){ searchCandidates(); }
-    } else {
-        document.body.classList.add('show-login');
-    }
+  if(localStorage.getItem('recruzen_loggedin') === 'true'){ enterDashboard(); }
+  else { document.body.classList.add('show-login'); }
+  ['email','password'].forEach(function(id){ document.getElementById(id).addEventListener('keypress', function(e){ if(e.key==='Enter') login(); }); });
+  ['jobTitle','skills'].forEach(function(id){ document.getElementById(id).addEventListener('keypress', function(e){ if(e.key==='Enter') searchCandidates(true); }); });
 })();
 
-// LOGIN LOGIC
-function togglePass(){ let p = document.getElementById('password'); p.type = p.type === 'password'? 'text' : 'password'; }
-function forgotPassword(){ let email = document.getElementById('email').value; if(email === ''){ alert('Please enter your Email ID first'); } else { alert('Password reset link sent to ' + email); } }
-function login(){ let email = document.getElementById('email').value; let pass = document.getElementById('password').value; if(email === 'admin@recruzen.com' && pass === 'admin123'){ localStorage.setItem('recruzen_loggedin', 'true'); document.body.classList.remove('show-login'); document.body.classList.add('show-dashboard'); loadCandidates(); updateUI(); } else { alert('Invalid Email or Password'); } }
-function logout(){ localStorage.removeItem('recruzen_loggedin'); localStorage.removeItem('recruzen_search'); localStorage.removeItem('recruzen_pending'); localStorage.removeItem('recruzen_last_download'); document.body.classList.remove('show-dashboard'); document.body.classList.add('show-login'); document.getElementById('email').value = ''; document.getElementById('password').value = ''; }
-
-// DROPDOWNS
-function toggleDropdown() { document.getElementById("profileDropdown").classList.toggle("show"); }
-function toggleBell() { document.getElementById("bellDropdown").classList.toggle("show"); }
-window.onclick = function(event) { if (!event.target.closest('.profile')) document.getElementById("profileDropdown").classList.remove('show'); if (!event.target.closest('.bell')) document.getElementById("bellDropdown").classList.remove('show'); }
-
-// PULL TO REFRESH
-let startY = 0; let isRefreshing = false;
-document.addEventListener('touchstart', e => { if(window.scrollY === 0) startY = e.touches[0].clientY; });
-document.addEventListener('touchmove', e => { if(window.scrollY === 0 && e.touches[0].clientY - startY > 80 &&!isRefreshing){ isRefreshing = true; document.getElementById('ptrLoader').style.display = 'block'; document.getElementById('ptrLoader').innerText = '⟳ Refreshing...'; setTimeout(()=>{ refreshDashboardData(); document.getElementById('ptrLoader').innerText = '✓ Refreshed'; setTimeout(()=>{ document.getElementById('ptrLoader').style.display = 'none'; document.getElementById('ptrLoader').innerText = '↓ Pull to Refresh'; isRefreshing = false; }, 800); }, 1000); } });
-function refreshDashboardData(){ updateUI(); updateDownloads(); let job = document.getElementById('jobTitle').value; let skill = document.getElementById('skills').value; let notice = document.getElementById('notice').value; if(job || skill || notice){ searchCandidates(); } else { document.getElementById('candidateList').innerHTML = "<div class='start-msg'>🔍 Enter details and click Search to find candidates</div>"; } let randomCount = Math.floor(Math.random() * 5) + 1; document.getElementById('candidateCount').innerText = randomCount; }
-
-// CANDIDATE LOGIC
-function loadCandidates() { let savedProfile = localStorage.getItem("talentiqProfile"); candidates = savedProfile? [JSON.parse(savedProfile),...dummyData] : [...dummyData]; }
-function updateUI() {
-    document.getElementById('credits').innerText = credits;
-    document.getElementById('bannerCredits').innerText = credits;
-    document.getElementById('progressFill').style.width = (credits / maxCredits) * 100 + '%';
-
-    // Update KPI Grid for pending feedback
-    let kpiHTML = `
-        <div class="kpi-card"><h3>Remaining Credits</h3><p><span id="bannerCredits">${credits}</span> / 1500</p><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${(credits / maxCredits) * 100}%;"></div></div></div>
-        <div class="kpi-card"><h3>Plan Expiry</h3><p>24 Dec 2026</p></div>
-        <div class="kpi-card"><h3>New Matches Today</h3><p><span id="candidateCount">0</span> Candidates</p></div>`;
-    if(pendingFeedback){
-        kpiHTML += `<div class="kpi-card" style="background:rgba(255,193,7,0.3);"><h3>⚠️ Feedback Pending</h3><p>1</p></div>`;
-        document.getElementById('searchBtn').disabled = true;
-    } else {
-        document.getElementById('searchBtn').disabled = false;
-    }
-    document.getElementById('kpiGrid').innerHTML = kpiHTML;
-}
-function updateDownloads() { let html = downloads.length === 0? "<p style='color:gray; font-size:14px;'>No downloads yet</p>" : ""; downloads.slice(0,5).forEach(d => { html += `<div class="download-item"><span>${d.name}</span><span style="color:gray; font-size:12px;">${d.time}</span></div>`; }); document.getElementById('recentDownloads').innerHTML = html; }
-
-function displayCandidates(list) {
-    updateUI();
-    document.getElementById('candidateCount').innerText = list.length;
-    let html = "";
-    if(list.length === 0) { html = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found</h3>"; }
-    list.forEach(c => {
-        let feedbackHTML = "";
-        // Show feedback panel only for last downloaded candidate and if pending
-        if(pendingFeedback && c.name === lastDownloaded){
-            feedbackHTML = `
-            <div class="feedback-panel">
-                <h4>⚠️ Update Status for ${c.name}</h4>
-                <select id="statusSelect">
-                    <option>Downloaded</option>
-                    <option>Shortlisted</option>
-                    <option>1st Interview Scheduled</option>
-                    <option>2nd Interview</option>
-                    <option>Rejected</option>
-                    <option>Hired</option>
-                </select>
-                <button class="feedback-btn" onclick="updateFeedback('${c.name}')">Submit Feedback</button>
-                <p style="font-size:12px; color:red; margin-top:8px;">Due in 3 days. Pending = New Downloads Blocked</p>
-            </div>`;
-        }
-        html += `<div class="candidate-card ${c.isNew? 'new' : ''}">
-        ${c.isNew? '<span class="new-badge">NEW</span>' : ''}
-        <h3>${c.name}</h3><p><b>${c.designation}</b> | ${c.exp} Years | ${c.location}</p>
-        <p><b>Notice:</b> ${c.jobType}</p><p>${c.skills.split(',').map(s => `<span class="tag">${s.trim()}</span>`).join('')}</p>
-        <button class="download-btn" ${pendingFeedback? 'disabled' : ''} onclick="downloadResume('${c.name}')">Download - 1 Credit</button>
-        ${feedbackHTML}
-        </div>`;
-    });
-    document.getElementById('candidateList').innerHTML = html;
+function enterDashboard(){
+  document.body.classList.remove('show-login'); document.body.classList.add('show-dashboard');
+  candidates = window.rzAllCandidates();
+  updateUI(); updateDownloads();
+  var saved = {}; try { saved = JSON.parse(localStorage.getItem('recruzen_search')||'{}'); } catch(e){}
+  if(saved.job) document.getElementById('jobTitle').value = saved.job;
+  if(saved.skill) document.getElementById('skills').value = saved.skill;
+  if(saved.notice) document.getElementById('notice').value = saved.notice;
+  if(saved.job || saved.skill || saved.notice) searchCandidates(false);
 }
 
-function searchCandidates() {
-    let job = document.getElementById('jobTitle').value.toLowerCase().trim();
-    let skill = document.getElementById('skills').value.toLowerCase().trim();
-    let notice = document.getElementById('notice').value;
-    localStorage.setItem('recruzen_search', JSON.stringify({job:job, skill:skill, notice:notice}));
-    if(job === '' && skill === '' && notice === ''){ alert('Please enter at least one field to search'); return; }
-    let skillArray = skill.split(',').map(s => s.trim()).filter(s => s!== "");
-    let filtered = candidates.filter(c => {
-        let jobMatch = job === "" || c.designation.toLowerCase().includes(job);
-        let skillMatch = skillArray.length === 0 || skillArray.some(s => c.skills.toLowerCase().includes(s));
-        let noticeMatch = notice === "" || c.jobType === notice;
-        return jobMatch && skillMatch && noticeMatch;
-    });
-    filtered.sort((a,b) => { if(a.name.toLowerCase().includes("ganesh")) return -1; return 0; });
-    if(filtered.length === 0){ document.getElementById('candidateList').innerHTML = "<h3 style='text-align:center; color:gray; padding:40px;'>No Candidates Found. Try 'Support' or 'Java'</h3>"; return; }
-    displayCandidates(filtered);
+function togglePass(){ var p = document.getElementById('password'); p.type = p.type === 'password' ? 'text' : 'password'; }
+function forgotPassword(){ var email = document.getElementById('email').value.trim(); if(!email){ alert('Please enter your Email ID first'); } else { alert('Demo: a password reset link would be sent to ' + email + '\n\nUse the demo login shown below.'); } }
+function login(){
+  var email = document.getElementById('email').value.trim().toLowerCase();
+  var pass = document.getElementById('password').value;
+  if(email === 'admin@recruzen.com' && pass === 'admin123'){ localStorage.setItem('recruzen_loggedin','true'); enterDashboard(); }
+  else { alert('Invalid Email or Password'); }
+}
+function logout(){
+  localStorage.removeItem('recruzen_loggedin'); localStorage.removeItem('recruzen_search');
+  document.body.classList.remove('show-dashboard'); document.body.classList.add('show-login');
+  document.getElementById('email').value=''; document.getElementById('password').value='';
+}
+function buyCredits(){ S.credits = Math.min(MAX_CREDITS, S.credits + 100); save(); updateUI(); rerender(); alert('✅ Demo: 100 credits added. Balance: ' + S.credits); }
+function resetDemo(){ if(!confirm('Reset credits, downloads and feedback to the starting demo state?')) return; localStorage.removeItem('recruzen_state'); localStorage.removeItem('recruzen_search'); S = loadState(); lastList=null; document.getElementById('jobTitle').value=''; document.getElementById('skills').value=''; document.getElementById('notice').value=''; document.getElementById('candidateList').innerHTML="<div class='start-msg'>🔍 Enter details and click Search to find candidates</div>"; updateUI(); updateDownloads(); }
+
+function toggleDropdown(){ document.getElementById('profileDropdown').classList.toggle('show'); }
+function toggleBell(){ document.getElementById('bellDropdown').classList.toggle('show'); document.getElementById('bellBadge').style.display='none'; }
+window.onclick = function(e){ if(!e.target.closest('.profile')) document.getElementById('profileDropdown').classList.remove('show'); if(!e.target.closest('.bell')) document.getElementById('bellDropdown').classList.remove('show'); };
+
+var startY = 0, isRefreshing = false;
+document.addEventListener('touchstart', function(e){ if(window.scrollY === 0) startY = e.touches[0].clientY; });
+document.addEventListener('touchmove', function(e){
+  if(window.scrollY === 0 && e.touches[0].clientY - startY > 80 && !isRefreshing && document.body.classList.contains('show-dashboard')){
+    isRefreshing = true; var l = document.getElementById('ptrLoader'); l.style.display='block'; l.innerText='⟳ Refreshing...';
+    setTimeout(function(){ candidates = window.rzAllCandidates(); updateUI(); updateDownloads(); rerender(); l.innerText='✓ Refreshed';
+      setTimeout(function(){ l.style.display='none'; l.innerText='↓ Pull to Refresh'; isRefreshing=false; }, 800); }, 1000);
+  }
+});
+
+function findC(id){ for(var i=0;i<candidates.length;i++) if(candidates[i].id===id) return candidates[i]; return null; }
+
+function updateUI(){
+  document.getElementById('credits').innerText = S.credits;
+  var pct = Math.max(1,(S.credits/MAX_CREDITS)*100);
+  var newCount = candidates.filter(function(c){return c.isNew;}).length;
+  var html = '<div class="kpi-card"><h3>Remaining Credits</h3><p><span id="bannerCredits">'+S.credits+'</span> / '+MAX_CREDITS+'</p><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;"></div></div></div>'
+    + '<div class="kpi-card"><h3>Plan Expiry</h3><p>24 Dec 2026</p></div>'
+    + '<div class="kpi-card"><h3>New Matches Today</h3><p>'+newCount+' Candidates</p></div>'
+    + '<div class="kpi-card"'+(S.pending?' style="background:rgba(255,193,7,0.3);"':'')+'><h3>'+(S.pending?'⚠️ Feedback Pending':'Resumes Downloaded')+'</h3><p>'+(S.pending?1:S.downloads.length)+'</p></div>';
+  document.getElementById('kpiGrid').innerHTML = html;
+  renderPending();
 }
 
-// UPDATED: downloadResume with BLOCK LOGIC
-function downloadResume(name) {
-    if(pendingFeedback){
-        alert("⚠️ You have 1 pending feedback. Please update status first to download new resumes.");
-        return;
-    }
-    if(credits > 0) {
-        credits--;
-        downloads.unshift({name: name, time: "Just now"});
-        pendingFeedback = true; // Set pending
-        lastDownloaded = name;
-        localStorage.setItem('recruzen_pending', 'true');
-        localStorage.setItem('recruzen_last_download', name);
-        localStorage.setItem('recruzen_feedback_due', Date.now() + 3*24*60*60*1000); // 3 days
-        updateDownloads();
-        updateUI();
-        alert(`Downloading ${name}'s Resume. Credits left: ${credits}\n\n⚠️ Please update candidate status within 3 days`);
-        searchCandidates(); // refresh to show feedback panel
-    } else { alert("No credits left! Please buy credits."); }
+// Feedback box always visible at the top while pending, so recruiters never get stuck
+function renderPending(){
+  var box = document.getElementById('pendingBox');
+  if(!S.pending){ box.innerHTML=''; return; }
+  var c = findC(S.pending) || {name:'candidate'};
+  var opts = ['Shortlisted','1st Interview Scheduled','2nd Interview','Offer Sent','Rejected','Hired'].map(function(o){return '<option>'+o+'</option>';}).join('');
+  box.innerHTML = '<div class="feedback-panel" style="margin-bottom:20px;"><h4>⚠️ Update status for '+esc(c.name)+'</h4>'
+    + '<select id="statusSelect">'+opts+'</select>'
+    + '<button class="feedback-btn" onclick="updateFeedback()">Submit Feedback</button>'
+    + '<p style="font-size:12px; color:#b91c1c; margin-top:8px;">New downloads are paused until you update this candidate. Searching still works.</p></div>';
 }
 
-// NEW: Update Feedback Function
-function updateFeedback(candidateName){
-    let status = document.getElementById('statusSelect').value;
-    pendingFeedback = false;
-    lastDownloaded = '';
-    localStorage.setItem('recruzen_pending', 'false');
-    localStorage.setItem('recruzen_last_download', '');
-    alert(`✅ Status Updated: ${status}\n\nNotification sent to ${candidateName}'s TalentIQ Mobile App`);
-    searchCandidates(); // refresh
+function updateDownloads(){
+  var el = document.getElementById('recentDownloads');
+  if(S.downloads.length===0){ el.innerHTML="<p style='color:gray; font-size:14px;'>No downloads yet</p>"; return; }
+  el.innerHTML = S.downloads.slice(0,8).map(function(d){
+    var st = S.statuses[d.id] || 'Feedback pending';
+    return '<div class="download-item"><span>'+esc(d.name)+'<br><span style="color:#4338ca; font-size:12px;">'+esc(st)+'</span></span><span style="color:gray; font-size:12px;">'+esc(timeAgo(d.at))+'</span></div>';
+  }).join('');
+}
+function timeAgo(t){ var m = Math.floor((Date.now()-t)/60000); if(m<1) return 'Just now'; if(m<60) return m+' min ago'; var h=Math.floor(m/60); if(h<24) return h+' hr ago'; return Math.floor(h/24)+' days ago'; }
+
+function displayCandidates(list){
+  lastList = list;
+  if(list.length===0){ document.getElementById('candidateList').innerHTML="<h3 style='text-align:center; color:gray; padding:40px;'>No candidates found. Try 'Java', 'Support' or 'Python'.</h3>"; return; }
+  document.getElementById('candidateList').innerHTML = list.map(function(c){
+    var downloaded = S.downloads.some(function(d){return d.id===c.id;});
+    var status = S.statuses[c.id];
+    var btn = downloaded
+      ? '<button class="download-btn" disabled>✓ Downloaded</button>'
+      : '<button class="download-btn" '+(S.pending?'disabled title="Update pending feedback first"':'')+' onclick="downloadResume(\''+c.id+'\')">Download - 1 Credit</button>';
+    return '<div class="candidate-card '+(c.isNew?'new':'')+'">'+(c.isNew?'<span class="new-badge">NEW</span>':'')
+      + btn + '<h3>'+esc(c.name)+'</h3><p><b>'+esc(c.designation)+'</b> | '+esc(c.exp)+' Years | '+esc(c.location)+'</p>'
+      + '<p><b>Notice:</b> '+esc(c.jobType)+'</p><p>'+String(c.skills).split(',').filter(function(s){return s.trim();}).map(function(s){return '<span class="tag">'+esc(s.trim())+'</span>';}).join('')+'</p>'
+      + (status?'<span class="status-pill">Status: '+esc(status)+'</span>':'')
+      + '</div>';
+  }).join('');
+}
+function rerender(){ if(lastList) displayCandidates(lastList.map(function(c){return findC(c.id)||c;})); }
+
+function showAll(){ document.getElementById('jobTitle').value=''; document.getElementById('skills').value=''; document.getElementById('notice').value=''; localStorage.removeItem('recruzen_search'); displayCandidates(candidates.slice()); }
+
+function searchCandidates(fromButton){
+  var job = document.getElementById('jobTitle').value.toLowerCase().trim();
+  var skill = document.getElementById('skills').value.toLowerCase().trim();
+  var notice = document.getElementById('notice').value;
+  if(!job && !skill && !notice){ if(fromButton) alert('Please enter at least one field, or press Show All'); return; }
+  localStorage.setItem('recruzen_search', JSON.stringify({job:job, skill:skill, notice:notice}));
+  var words = job.split(/\s+/).filter(Boolean);
+  var skillArray = skill.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  var filtered = candidates.filter(function(c){
+    var d = c.designation.toLowerCase(), sk = String(c.skills).toLowerCase();
+    var jobMatch = words.length===0 || words.every(function(w){ return d.indexOf(w)>=0 || sk.indexOf(w)>=0; });
+    var skillMatch = skillArray.length===0 || skillArray.some(function(s){ return sk.indexOf(s)>=0; });
+    var noticeMatch = !notice || c.jobType === notice;
+    return jobMatch && skillMatch && noticeMatch;
+  });
+  filtered.sort(function(a,b){ return (b.isNew?1:0)-(a.isNew?1:0); });
+  displayCandidates(filtered);
+}
+
+function downloadResume(id){
+  var c = findC(id); if(!c) return;
+  if(S.pending){ alert('⚠️ You have 1 pending feedback. Please update its status first (see the yellow box at the top).'); return; }
+  if(S.credits <= 0){ alert('No credits left! Open the profile menu and choose "Buy 100 Credits (demo)".'); return; }
+  S.credits--; S.downloads.unshift({id:c.id, name:c.name, at:Date.now()}); S.pending = c.id; save();
+  var text = 'RESUME - ' + c.name + '\n\nRole: ' + c.designation + '\nExperience: ' + c.exp + ' years\nLocation: ' + c.location + '\nNotice period: ' + c.jobType + '\nSkills: ' + c.skills + '\n\n(Sample resume from the RecruZen demo)';
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download = c.name.replace(/[^a-z0-9]+/gi,'_') + '_Resume.txt'; document.body.appendChild(a); a.click(); a.remove();
+  updateUI(); updateDownloads(); rerender(); window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateFeedback(){
+  if(!S.pending) return;
+  var c = findC(S.pending) || {name:'candidate'};
+  var status = document.getElementById('statusSelect').value;
+  S.statuses[S.pending] = status; S.pending = null; save();
+  updateUI(); updateDownloads(); rerender();
+  alert('✅ Status updated: ' + status + '\n\nNotification sent to ' + c.name + "'s TalentIQ app (demo)");
 }
 </script>
 </body>
